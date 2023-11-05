@@ -1,8 +1,13 @@
 mod constants;
 mod game;
 mod gen_alg;
+#[cfg(feature = "ledmatrix")]
+mod ledmatrix;
 mod qlearn;
+#[cfg(feature = "piston")]
 mod render;
+#[cfg(feature = "ledmatrix")]
+mod render_ledmatrix;
 
 extern crate rayon;
 
@@ -12,7 +17,10 @@ use crate::constants::*;
 use crate::game::{Brain, Game};
 use crate::gen_alg::{Population, NN};
 use crate::qlearn::QLearner;
+#[cfg(feature = "piston")]
 use crate::render::Render;
+#[cfg(feature = "ledmatrix")]
+use crate::render_ledmatrix::Render;
 
 enum GameType {
     Human,
