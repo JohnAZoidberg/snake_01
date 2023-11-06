@@ -1,4 +1,7 @@
 use crate::constants::*;
+#[cfg(feature = "ledris")]
+use crate::ledris::{Block, Direction, Game};
+#[cfg(feature = "snake")]
 use crate::game::{Block, Brain, Direction, Game};
 use crate::ledmatrix::*;
 
@@ -66,6 +69,7 @@ impl Render {
         }
     }
 
+    #[cfg(feature = "snake")]
     pub fn run_brain<T: Brain>(&mut self, brain: &mut T) {
         let mut game = Game::new();
         game.init();
@@ -109,12 +113,19 @@ impl Render {
         self.grid = Grid::default();
 
         // Draw body
-        for b in game.snake.body.iter() {
-            self.render_block(&b, e);
-        }
+        //for b in game.snake.body.iter() {
+        //    self.render_block(&b, e);
+        //}
 
         // Draw food
-        self.render_block(&game.food, e);
+        //self.render_block(&game.food, e);
+
+        for b in game.piece.blocks() {
+            if b.colour == GREEN {
+                self.render_block(&b, e);
+                println!("Block: {:?}", b);
+            }
+        }
 
         // Flush to matrix
         render_matrix(&self.serialdev, &self.grid.0);
@@ -137,6 +148,10 @@ impl Render {
         // println!("X: {:?}, Y: {:?}, Color: {:?}", block.position.x, block.position.y, block.colour);
         let x = block.position.x as usize;
         let y = block.position.y as usize;
+        if x >= WIDTH || y >= HEIGHT {
+            // Avoid crash if out of bounds
+            return;
+        }
         self.grid.0[x][y] = match block.colour {
             // Red
             [1.0, 0.0, 0.0, 1.0] => 0xFF,

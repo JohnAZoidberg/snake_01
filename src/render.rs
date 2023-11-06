@@ -59,13 +59,20 @@ impl Render {
     }
 
     fn render_game(&mut self, _args: &RenderArgs, game: &Game, e: &Event) {
+        println!("Foo");
         self.window.draw_2d(e, |_, g, _| {
             clear([1.0; 4], g);
         });
-        for b in game.snake.body.iter() {
-            self.render_block(&b, e);
+        //for b in game.snake.body.iter() {
+        //    self.render_block(&b, e);
+        //}
+        for b in game.piece.blocks() {
+            if b.colour == GREEN {
+                self.render_block(&b, e);
+                println!("Block: {:?}", b);
+            }
         }
-        self.render_block(&game.food, e);
+        //self.render_block(&game.food, e);
     }
 
     fn render_block(&mut self, block: &Block, e: &Event) {

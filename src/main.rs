@@ -35,7 +35,7 @@ fn main() {
 
     match game_type {
         GameType::Human => render_game(),
-        _ => {},
+        _ => {}
         //GameType::GeneticAlgorithm => {
         //    iterate_population(NUM_INDIVIDUALS, NUM_GAMES_NN, NUM_GENERATIONS, fitness_function_nn)
         //}
@@ -159,7 +159,6 @@ fn fitness_function_ql(_delta_t: i64, dist_before: i64, dist_after: i64, snake_e
 // --------------------------------------------------------------------------------------
 // ----------------------------------Generic Brain---------------------------------------
 // --------------------------------------------------------------------------------------
-
 
 //fn play_brain<T: Brain>(brain: &mut T, num_games: u32, fitness_function: fn(i64, i64, i64, i64, i64) -> f64) -> f64 {
 //    let mut game = Game::new();

@@ -6,11 +6,144 @@ use std::fmt;
 
 use crate::constants::*;
 
+const WIDTH: usize = BOARD_WIDTH as usize;
+const HEIGHT: usize = BOARD_HEIGHT as usize;
+
+#[derive(Clone)]
+pub struct Grid(pub [[u8; HEIGHT]; WIDTH]);
+impl Default for Grid {
+    fn default() -> Self {
+        Grid([[0; HEIGHT]; WIDTH])
+    }
+}
+
+type PieceShape = [[u8; 4]; 4];
+#[rustfmt::skip]
+const PIECES: [[((i8, i8), PieceShape); 4]; 2] = [
+    [
+        (
+            (0, -1),
+            [
+                [0, 0, 0, 0],
+                [1, 1, 1, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+            ],
+        ),
+        (
+            (-1, 0),
+            [
+                [0, 1, 0, 0],
+                [0, 1, 0, 0],
+                [0, 1, 0, 0],
+                [0, 1, 0, 0],
+            ],
+        ),
+        (
+            (0, -1),
+            [
+                [0, 0, 0, 0],
+                [1, 1, 1, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+            ],
+        ),
+        (
+            (0, -1),
+            [
+                [0, 1, 0, 0],
+                [0, 1, 0, 0],
+                [0, 1, 0, 0],
+                [0, 1, 0, 0],
+            ],
+        ),
+    ],
+    [
+        (
+            (-1, 0),
+            [
+                [0, 0, 0, 0],
+                [0, 1, 1, 1],
+                [0, 1, 0, 0],
+                [0, 0, 0, 0],
+            ],
+        ),
+        (
+            (-1, 0),
+            [
+                [0, 0, 0, 0],
+                [0, 1, 1, 0],
+                [0, 0, 1, 0],
+                [0, 0, 1, 0],
+            ],
+        ),
+        (
+            (-1, 0),
+            [
+                [0, 0, 0, 0],
+                [0, 0, 1, 0],
+                [1, 1, 1, 0],
+                [0, 0, 0, 0],
+            ]
+        ),
+        (
+            (-1, 0),
+            [
+                [0, 1, 0, 0],
+                [0, 1, 0, 0],
+                [0, 1, 1, 0],
+                [0, 0, 0, 0],
+            ],
+        ),
+    ],
+];
+
 #[derive(Copy, Clone, Debug)]
 pub struct Piece {
-    shape: u8,
+    shape: usize,
     rotation: Direction,
     pos: Position,
+}
+impl Default for Piece {
+    fn default() -> Self {
+        Self {
+            shape: 1,
+            rotation: Direction::UP,
+            pos: Position::new_abs(2, BOARD_WIDTH as i8 / 2),
+        }
+    }
+}
+impl Piece {
+    fn random() -> Self {
+        let mut rng = rand::thread_rng();
+        Self {
+            shape: rng.gen_range(0..2),
+            rotation: [Direction::UP, Direction::DOWN, Direction::LEFT, Direction::RIGHT][rng.gen_range(0..4)],
+            pos: Position::new_abs(2, rng.gen_range(0..(WIDTH-2) as i8)),
+        }
+    }
+    pub fn blocks(&self) -> [Block; 16] {
+        let ((off_x, off_y), shape) = PIECES[self.shape][self.rotation as usize];
+        // TODO: Rotation
+        // TODO: Pos
+        let mut blocks = [Block {
+            position: Position::new_abs(0, 0),
+            colour: YELLOW,
+        }; 16];
+
+        for x in 0..4 {
+            for y in 0..4 {
+                if shape[y][x] == 1 {
+                    blocks[x+y*4].colour = GREEN;
+                    blocks[x+y*4].position = Position::new_abs(
+                        (self.pos.x as i8) + (x as i8) - 2, (self.pos.y as i8) + (y as i8) - 2
+                    );
+                }
+            }
+        }
+
+        blocks
+    }
 }
 
 #[derive(Copy, Clone)]
@@ -25,6 +158,10 @@ impl Position {
             x: BOARD_WIDTH / 2,
             y: BOARD_HEIGHT / 2,
         }
+    }
+
+    fn new_abs(x: i8, y: i8) -> Position {
+        Position { x: x as u8, y: y as u8 }
     }
 
     fn new_offset(x: i8, y: i8) -> Position {
@@ -67,6 +204,7 @@ impl fmt::Debug for Position {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
 pub struct Block {
     pub position: Position,
     pub colour: [f32; 4],
@@ -81,12 +219,20 @@ pub enum Direction {
 }
 
 impl Direction {
-    fn opposite(&mut self) -> Direction {
+    fn opposite(&self) -> Self {
         match self {
             Direction::UP => Direction::DOWN,
             Direction::DOWN => Direction::UP,
             Direction::LEFT => Direction::RIGHT,
             Direction::RIGHT => Direction::LEFT,
+        }
+    }
+    fn next(&self) -> Self {
+        match self {
+            Direction::UP => Direction::RIGHT,
+            Direction::RIGHT => Direction::DOWN,
+            Direction::DOWN => Direction::LEFT,
+            Direction::LEFT => Direction::UP,
         }
     }
 }
@@ -188,6 +334,8 @@ pub struct Game {
     pub food: Block,
     pub time: u32,
     pub score: u32,
+    pub board: Grid,
+    pub piece: Piece,
 }
 
 impl Game {
@@ -200,6 +348,8 @@ impl Game {
             },
             time: 0,
             score: 0,
+            board: Grid::default(),
+            piece: Piece::default(),
         }
     }
 
@@ -208,13 +358,24 @@ impl Game {
         self.food.position = self.get_food_pos();
         self.time = 0;
         self.score = 0;
+
+        self.board = Grid::default();
+        self.piece = Piece::random();
     }
 
     pub fn update(&mut self, dir: Direction) {
         self.snake.update(dir);
+        match dir {
+            Direction::UP => self.piece.rotation = self.piece.rotation.next(),
+            Direction::DOWN => self.piece.pos.offset(0, 1),
+            Direction::LEFT => self.piece.pos.offset(-1, 0),
+            Direction::RIGHT => self.piece.pos.offset(1, 0),
+        }
+
     }
 
     pub fn next_tick(&mut self, _dt: f64) {
+        self.piece.pos.offset(0, 1);
         if self.snake.alive {
             self.snake.perform_next(&mut self.food.position);
             self.time += 1;
@@ -253,51 +414,6 @@ impl Game {
         let dist_x = (self.snake.body[0].position.x as i64 - self.food.position.x as i64).abs();
         let dist_y = (self.snake.body[0].position.y as i64 - self.food.position.y as i64).abs();
         dist_x + dist_y
-    }
-
-    pub fn get_nn_inputs(&self) -> Vec<f64> {
-        let head_pos = self.snake.body[0].position;
-        let food_pos = self.food.position;
-
-        let mut pos_right = head_pos;
-        pos_right.offset(1, 0);
-        let right_dead = self.get_pos_dead(pos_right);
-        let right_food = if food_pos.y == head_pos.y && food_pos.x > head_pos.x {
-            1f64
-        } else {
-            0f64
-        };
-
-        let mut pos_up = head_pos;
-        pos_up.offset(0, -1);
-        let up_dead = self.get_pos_dead(pos_up);
-        let up_food = if food_pos.x == head_pos.x && food_pos.y > head_pos.y {
-            1f64
-        } else {
-            0f64
-        };
-
-        let mut pos_left = head_pos;
-        pos_left.offset(-1, 0);
-        let left_dead = self.get_pos_dead(pos_left);
-        let left_food = if food_pos.y == head_pos.y && food_pos.x < head_pos.x {
-            1f64
-        } else {
-            0f64
-        };
-
-        let mut pos_down = head_pos;
-        pos_down.offset(0, 1);
-        let down_dead = self.get_pos_dead(pos_down);
-        let down_food = if food_pos.x == head_pos.x && food_pos.y < head_pos.y {
-            1f64
-        } else {
-            0f64
-        };
-
-        vec![
-            right_dead, right_food, up_dead, up_food, left_dead, left_food, down_dead, down_food,
-        ]
     }
 
     fn get_pos_dead(&self, pos: Position) -> f64 {

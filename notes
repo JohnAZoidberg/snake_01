@@ -1,0 +1,18 @@
+Both
+
+- [ ] Fix scaling of border
+- [ ] Fix half a block cut off on the right
+
+Snake
+
+- [ ] Prevent running backwards into oneself
+- [ ] Start down or up...
+
+Ledris
+
+- [x] Reach to the edges
+- [ ] Edge collision detection
+- [ ] Bottom collision detection
+- [ ] Save onto grid if collided with bottom
+- [ ] Collision detection with saved pieces
+- [ ] All types of pieces
