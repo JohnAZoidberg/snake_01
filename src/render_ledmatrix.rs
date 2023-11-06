@@ -53,7 +53,7 @@ impl Render {
 
         while let Some(e) = self.events.next(&mut self.window) {
             if let Some(args) = e.render_args() {
-                self.render_game(&args, &game);
+                self.render_game(&args, &game, &e);
             }
 
             if let Some(args) = e.update_args() {
@@ -72,7 +72,7 @@ impl Render {
 
         while let Some(e) = self.events.next(&mut self.window) {
             if let Some(args) = e.render_args() {
-                self.render_game(&args, &game);
+                self.render_game(&args, &game, &e);
             }
 
             if let Some(args) = e.update_args() {
@@ -101,15 +101,22 @@ impl Render {
         }
     }
 
-    fn render_game(&mut self, _args: &RenderArgs, game: &Game) {
+    fn render_game(&mut self, _args: &RenderArgs, game: &Game, e: &Event) {
+        // Clear
+        self.window.draw_2d(e, |_, g, _| {
+            clear([1.0; 4], g);
+        });
         self.grid = Grid::default();
 
+        // Draw body
         for b in game.snake.body.iter() {
-            self.render_block(&b);
+            self.render_block(&b, e);
         }
 
-        self.render_block(&game.food);
+        // Draw food
+        self.render_block(&game.food, e);
 
+        // Flush to matrix
         render_matrix(&self.serialdev, &self.grid.0);
         //let mut port = serialport::new(&self.serialdev, 115_200)
         //.timeout(SERIAL_TIMEOUT)
@@ -122,7 +129,11 @@ impl Render {
         //commit_cols(&mut port);
     }
 
-    fn render_block(&mut self, block: &Block) {
+    fn render_block(&mut self, block: &Block, e: &Event) {
+        self.render_block_ledmatrix(block);
+        self.render_block_piston(block, e);
+    }
+    fn render_block_ledmatrix(&mut self, block: &Block) {
         // println!("X: {:?}, Y: {:?}, Color: {:?}", block.position.x, block.position.y, block.colour);
         let x = block.position.x as usize;
         let y = block.position.y as usize;
@@ -136,5 +147,29 @@ impl Render {
             // Other
             _ => 0x00,
         };
+    }
+    fn render_block_piston(&mut self, block: &Block, e: &Event) {
+        use graphics::math::Matrix2d;
+
+        // TODO: Transforming after apply the border, stretches the border unequally, which we
+        // don't want
+        let square_ = graphics::rectangle::Rectangle::new(block.colour).border(graphics::rectangle::Border {
+            color: BLACK,
+            radius: 0.01,
+        });
+        let dims_ =
+            graphics::rectangle::rectangle_by_corners(0.0, 0.0, 2.0 / BOARD_WIDTH as f64, 2.0 / BOARD_HEIGHT as f64);
+        let transform_: Matrix2d = graphics::math::identity()
+            .trans(
+                -((BOARD_WIDTH / 2) as f64) * 2.0 / BOARD_WIDTH as f64,
+                (BOARD_HEIGHT / 2 - 1) as f64 * 2.0 / BOARD_HEIGHT as f64,
+            )
+            .trans(
+                (block.position.x as f64) * 2.0 / BOARD_WIDTH as f64,
+                -(block.position.y as f64) * 2.0 / BOARD_HEIGHT as f64,
+            );
+        self.window.draw_2d(e, |c, g, _| {
+            square_.draw(dims_, &c.draw_state, transform_, g);
+        });
     }
 }
