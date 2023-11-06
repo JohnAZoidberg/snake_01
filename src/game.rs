@@ -115,7 +115,7 @@ impl Snake {
                     colour: GREEN,
                 },
             ]),
-            direction: Direction::RIGHT,
+            direction: Direction::UP,
             alive: true,
             eat: false,
         }
