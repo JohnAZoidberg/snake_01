@@ -20,7 +20,7 @@ impl Default for ExtendedGrid {
         let mut grid = ExtendedGrid([[0; HEIGHT+3]; WIDTH+2*3]);
         for x in 0..WIDTH+2*3 {
             for y in 0..HEIGHT+3 {
-                if x < 3 || x > 3+34 || y > 33 {
+                if x < 3 || x >= 3+9 || y > 33 {
                     grid.0[x][y] = 0xFF;
                 }
             }
