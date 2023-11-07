@@ -123,8 +123,12 @@ impl Render {
         for b in game.piece.blocks() {
             if b.colour == GREEN {
                 self.render_block(&b, e);
-                println!("Block: {:?}", b);
+                //println!("Block: {:?}", b);
             }
+        }
+        for b in game.board.blocks() {
+            println!("Block: {:?}", b);
+            self.render_block(&b, e);
         }
 
         // Flush to matrix
@@ -145,13 +149,17 @@ impl Render {
         self.render_block_piston(block, e);
     }
     fn render_block_ledmatrix(&mut self, block: &Block) {
+        if block.colour != GREEN {
+            return;
+        }
         // println!("X: {:?}, Y: {:?}, Color: {:?}", block.position.x, block.position.y, block.colour);
         let x = block.position.x as usize;
         let y = block.position.y as usize;
-        if x >= WIDTH || y >= HEIGHT {
-            // Avoid crash if out of bounds
-            return;
-        }
+        let x = x - 3;
+        //if x >= WIDTH || y >= HEIGHT {
+        //    // Avoid crash if out of bounds
+        //    return;
+        //}
         self.grid.0[x][y] = match block.colour {
             // Red
             [1.0, 0.0, 0.0, 1.0] => 0xFF,
@@ -160,11 +168,22 @@ impl Render {
             // Green
             [0.0, 1.0, 0.0, 1.0] => 0xFF,
             // Other
-            _ => 0x00,
+            _ => return,//0x00,
         };
     }
     fn render_block_piston(&mut self, block: &Block, e: &Event) {
+        if block.colour != GREEN {
+            return;
+        }
         use graphics::math::Matrix2d;
+
+        let x = block.position.x as usize;
+        let y = block.position.y as usize;
+        let x = x - 3;
+        //if x >= WIDTH || y >= HEIGHT {
+        //    // Avoid crash if out of bounds
+        //    return;
+        //}
 
         // TODO: Transforming after apply the border, stretches the border unequally, which we
         // don't want
@@ -180,8 +199,8 @@ impl Render {
                 (BOARD_HEIGHT / 2 - 1) as f64 * 2.0 / BOARD_HEIGHT as f64,
             )
             .trans(
-                (block.position.x as f64) * 2.0 / BOARD_WIDTH as f64,
-                -(block.position.y as f64) * 2.0 / BOARD_HEIGHT as f64,
+                (x as f64) * 2.0 / BOARD_WIDTH as f64,
+                -(y as f64) * 2.0 / BOARD_HEIGHT as f64,
             );
         self.window.draw_2d(e, |c, g, _| {
             square_.draw(dims_, &c.draw_state, transform_, g);

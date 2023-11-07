@@ -1,6 +1,8 @@
 use crate::constants::*;
-//use crate::game::{Block, Brain, Direction, Game};
-use crate::ledris::{Block, Direction, Game};
+#[cfg(feature = "ledris")]
+use crate::ledris::{Block, Direction, Game, OFF_U8, OFF_I8};
+#[cfg(feature = "snake")]
+use crate::game::{Block, Brain, Direction, Game};
 
 use piston_window::*;
 
@@ -32,7 +34,7 @@ impl Render {
         while let Some(e) = self.events.next(&mut self.window) {
             if let Some(args) = e.render_args() {
                 self.render_game(&args, &game, &e);
-            }
+            }jj
 
             if let Some(args) = e.update_args() {
                 game.next_tick(args.dt);
@@ -59,7 +61,6 @@ impl Render {
     }
 
     fn render_game(&mut self, _args: &RenderArgs, game: &Game, e: &Event) {
-        println!("Foo");
         self.window.draw_2d(e, |_, g, _| {
             clear([1.0; 4], g);
         });
@@ -76,7 +77,7 @@ impl Render {
     }
 
     fn render_block(&mut self, block: &Block, e: &Event) {
-        //args: &RenderArgs
+        let x = x - OFF_U8;
 
         use graphics::math::Matrix2d;
 
@@ -92,8 +93,8 @@ impl Render {
                 (BOARD_HEIGHT / 2 - 1) as f64 * 2.0 / BOARD_HEIGHT as f64,
             )
             .trans(
-                (block.position.x as f64) * 2.0 / BOARD_WIDTH as f64,
-                -(block.position.y as f64) * 2.0 / BOARD_HEIGHT as f64,
+                (x as f64) * 2.0 / BOARD_WIDTH as f64,
+                -(y as f64) * 2.0 / BOARD_HEIGHT as f64,
             );
         self.window.draw_2d(e, |c, g, _| {
             square_.draw(dims_, &c.draw_state, transform_, g);

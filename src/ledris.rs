@@ -6,14 +6,78 @@ use std::fmt;
 
 use crate::constants::*;
 
+pub const OFF: usize = 3;
+pub const OFF_U8: u8 = 3;
+pub const OFF_I8: i8 = 3;
+
 const WIDTH: usize = BOARD_WIDTH as usize;
 const HEIGHT: usize = BOARD_HEIGHT as usize;
 
 #[derive(Clone)]
-pub struct Grid(pub [[u8; HEIGHT]; WIDTH]);
-impl Default for Grid {
+pub struct ExtendedGrid(pub [[u8; HEIGHT+3]; WIDTH+2*3]);
+impl Default for ExtendedGrid {
     fn default() -> Self {
-        Grid([[0; HEIGHT]; WIDTH])
+        let mut grid = ExtendedGrid([[0; HEIGHT+3]; WIDTH+2*3]);
+        for x in 0..WIDTH+2*3 {
+            for y in 0..HEIGHT+3 {
+                if x < 3 || x > 3+34 || y > 34 {
+                    grid.0[x][y] = 0xFF;
+                }
+            }
+        }
+        grid
+    }
+}
+impl ExtendedGrid {
+    pub fn blocks(&self) -> [Block; (HEIGHT+3) * (WIDTH+2*3)] {
+        let mut blocks = [Block {
+            position: Position::new_abs(0, 0),
+            colour: YELLOW,
+        }; (HEIGHT+3) * (WIDTH+2*3)];
+        for x in 0..WIDTH+6 {
+            for y in 0..HEIGHT {
+                blocks[x+y*(WIDTH+2*3)].position = Position::new_abs(x as i8, y as i8);
+                // TODO: Why subtract by 2 not 3?
+                if self.0[x][y] == 0xFF && x > 2 && x < WIDTH+6 && y < HEIGHT {
+                    blocks[x+y*(WIDTH+2*3)].colour = GREEN;
+                }
+            }
+        }
+        blocks
+        //ExtendedGridIterator {
+        //    grid: self,
+        //    x: 0,
+        //    y: 0,
+        //}
+    }
+}
+pub struct ExtendedGridIterator<'a> {
+    grid: &'a ExtendedGrid,
+    x: usize,
+    y: usize,
+}
+impl <'a>Iterator for ExtendedGridIterator<'a> {
+    type Item = Block;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let x_start = self.x;
+        let y_start = self.y;
+        for x in x_start..WIDTH {
+            for y in y_start..HEIGHT {
+                //println!("x: {:?}, y: {:?}", x, y);
+                self.x = x;
+                self.y = y;
+                if self.grid.0[x][y] == 0xFF && x > 3 && x < WIDTH+6 && y < HEIGHT {
+                    self.y += 1;
+                    //println!("Woah");
+                    return Some(Block {
+                        position: Position::new_abs(self.x as i8, self.y as i8),
+                        colour: GREEN,
+                    });
+                }
+            }
+        }
+        None
     }
 }
 
@@ -124,8 +188,6 @@ impl Piece {
     }
     pub fn blocks(&self) -> [Block; 16] {
         let ((off_x, off_y), shape) = PIECES[self.shape][self.rotation as usize];
-        // TODO: Rotation
-        // TODO: Pos
         let mut blocks = [Block {
             position: Position::new_abs(0, 0),
             colour: YELLOW,
@@ -134,10 +196,12 @@ impl Piece {
         for x in 0..4 {
             for y in 0..4 {
                 if shape[y][x] == 1 {
-                    blocks[x+y*4].colour = GREEN;
-                    blocks[x+y*4].position = Position::new_abs(
-                        (self.pos.x as i8) + (x as i8) - 2, (self.pos.y as i8) + (y as i8) - 2
-                    );
+                    let res_x = (self.pos.x as i8) + (x as i8);
+                    let res_y = (self.pos.y as i8) + (y as i8);
+                    blocks[x+y*4].position = Position::new_abs(res_x, res_y);
+                    if res_x >= 3 && res_x < 3 + 9 && res_y < 34 {
+                        blocks[x+y*4].colour = GREEN;
+                    }
                 }
             }
         }
@@ -171,8 +235,8 @@ impl Position {
     }
 
     fn offset(&mut self, x: i8, y: i8) {
-        self.x = Position::calc_offset(self.x, x, BOARD_WIDTH);
-        self.y = Position::calc_offset(self.y, y, BOARD_HEIGHT);
+        self.x = Position::calc_offset(self.x, x, BOARD_WIDTH+3*2);
+        self.y = Position::calc_offset(self.y, y, BOARD_HEIGHT+3);
     }
 
     fn calc_offset(val: u8, offset: i8, max_val: u8) -> u8 {
@@ -334,7 +398,7 @@ pub struct Game {
     pub food: Block,
     pub time: u32,
     pub score: u32,
-    pub board: Grid,
+    pub board: ExtendedGrid,
     pub piece: Piece,
 }
 
@@ -348,7 +412,7 @@ impl Game {
             },
             time: 0,
             score: 0,
-            board: Grid::default(),
+            board: ExtendedGrid::default(),
             piece: Piece::default(),
         }
     }
@@ -359,23 +423,40 @@ impl Game {
         self.time = 0;
         self.score = 0;
 
-        self.board = Grid::default();
+        self.board = ExtendedGrid::default();
         self.piece = Piece::random();
     }
 
     pub fn update(&mut self, dir: Direction) {
-        self.snake.update(dir);
+        if dir == Direction::UP {
+            println!("Save");
+            self.save();
+        }
         match dir {
-            Direction::UP => self.piece.rotation = self.piece.rotation.next(),
+            Direction::UP => (),//self.piece.rotation = self.piece.rotation.next(),
             Direction::DOWN => self.piece.pos.offset(0, 1),
             Direction::LEFT => self.piece.pos.offset(-1, 0),
-            Direction::RIGHT => self.piece.pos.offset(1, 0),
+            Direction::RIGHT => {
+                println!("Right!");
+                println!("Before: {:?}", self.piece.pos);
+                self.piece.pos.offset(1, 0);
+                println!("After: {:?}", self.piece.pos);
+            },
         }
 
     }
 
+    fn save(&mut self) {
+        for b in self.piece.blocks() {
+            if b.colour == GREEN {
+                self.board.0[b.position.x as usize][b.position.y as usize] = 0xFF;
+            }
+        }
+    }
+
     pub fn next_tick(&mut self, _dt: f64) {
-        self.piece.pos.offset(0, 1);
+        //self.piece.pos.offset(0, 1);
+
         if self.snake.alive {
             self.snake.perform_next(&mut self.food.position);
             self.time += 1;
