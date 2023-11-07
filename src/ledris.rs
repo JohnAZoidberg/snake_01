@@ -30,6 +30,33 @@ impl Default for ExtendedGrid {
     }
 }
 impl ExtendedGrid {
+    fn remove_row(&mut self, row: usize) {
+        for row in (1..row+1).rev() {
+            for x in 0..WIDTH {
+                self.0[x+3][row] = self.0[x+3][row-1];
+            }
+        }
+    }
+    fn compact_rows(&mut self) -> u8 {
+        let mut score = 0;
+
+        // Check every row
+        for row in (0..HEIGHT).rev() {
+            let mut full_row = true;
+            for x in 0..WIDTH {
+                if self.0[x+3][row] != 0xFF {
+                    full_row = false;
+                }
+            }
+            if full_row {
+                println!("Row: {} is full", row);
+                score += 1;
+                self.remove_row(row);
+            }
+        }
+
+        score
+    }
     pub fn blocks(&self) -> [Block; (HEIGHT+3) * (WIDTH+2*3)] {
         let mut blocks = [Block {
             position: Position::new_abs(0, 0),
@@ -435,8 +462,7 @@ impl Game {
         if self.check_collision(&next_piece) {
             // Don't collide on rotation or sideways move
             if dir == Direction::DOWN {
-                self.save();
-                self.piece = Piece::random();
+                self.fallen_down();
             }
             println!("Collision");
         } else {
@@ -456,7 +482,7 @@ impl Game {
     fn check_collision(&self, piece: &Piece) -> bool {
         for b in piece.blocks() {
             if b.colour == GREEN {
-                println!("Test: {:?}", b);
+                //println!("Test: {:?}", b);
                 if self.board.0[b.position.x as usize][b.position.y as usize] == 0xFF {
                     return true;
                 }
@@ -465,23 +491,32 @@ impl Game {
         false
     }
 
+    fn fallen_down(&mut self) {
+        self.save();
+        println!("Rock bottom");
+
+        let score = self.board.compact_rows();
+        println!("Score: {}", score);
+
+        self.piece = Piece::random();
+        // If the newly generated piece already overlaps, it's game over
+        if self.check_collision(&self.piece) {
+            // Game Over
+            self.game_over = true;
+        }
+    }
+
     pub fn next_tick(&mut self, _dt: f64) {
         if self.game_over {
             return;
         }
         let mut next_piece = self.piece.clone();
         next_piece.pos.offset(0, 1);
-        println!("Current: {:?}", self.piece);
-        println!("Next: {:?}", next_piece);
-        println!("");
+        //println!("Current: {:?}", self.piece);
+        //println!("Next: {:?}", next_piece);
+        //println!("");
         if self.check_collision(&next_piece) {
-            self.save();
-            self.piece = Piece::random();
-            println!("Rock bottom");
-            if self.check_collision(&self.piece) {
-                // Game Over
-                self.game_over = true;
-            }
+            self.fallen_down();
         } else {
             self.piece = next_piece;
         };
