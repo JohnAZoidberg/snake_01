@@ -372,7 +372,7 @@ impl Game {
         self.save();
         //println!("Rock bottom");
 
-        self.score = self.board.compact_rows();
+        self.score += self.board.compact_rows();
         println!("Score: {}", self.score);
 
         self.piece = Piece::random();
