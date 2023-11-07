@@ -127,7 +127,7 @@ impl Render {
             }
         }
         for b in game.board.blocks() {
-            println!("Block: {:?}", b);
+            //println!("Block: {:?}", b);
             self.render_block(&b, e);
         }
 
@@ -156,10 +156,10 @@ impl Render {
         let x = block.position.x as usize;
         let y = block.position.y as usize;
         let x = x - 3;
-        //if x >= WIDTH || y >= HEIGHT {
-        //    // Avoid crash if out of bounds
-        //    return;
-        //}
+        if x >= WIDTH || y >= HEIGHT {
+            // Avoid crash if out of bounds
+            return;
+        }
         self.grid.0[x][y] = match block.colour {
             // Red
             [1.0, 0.0, 0.0, 1.0] => 0xFF,
@@ -180,6 +180,7 @@ impl Render {
         let x = block.position.x as usize;
         let y = block.position.y as usize;
         let x = x - 3;
+        // It seems piston already ignores this by itself, if you draw off-screen
         //if x >= WIDTH || y >= HEIGHT {
         //    // Avoid crash if out of bounds
         //    return;

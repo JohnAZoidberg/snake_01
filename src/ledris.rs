@@ -13,18 +13,19 @@ pub const OFF_I8: i8 = 3;
 const WIDTH: usize = BOARD_WIDTH as usize;
 const HEIGHT: usize = BOARD_HEIGHT as usize;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ExtendedGrid(pub [[u8; HEIGHT+3]; WIDTH+2*3]);
 impl Default for ExtendedGrid {
     fn default() -> Self {
         let mut grid = ExtendedGrid([[0; HEIGHT+3]; WIDTH+2*3]);
         for x in 0..WIDTH+2*3 {
             for y in 0..HEIGHT+3 {
-                if x < 3 || x > 3+34 || y > 34 {
+                if x < 3 || x > 3+34 || y > 33 {
                     grid.0[x][y] = 0xFF;
                 }
             }
         }
+        println!("Grid: {:?}", grid);
         grid
     }
 }
@@ -168,22 +169,13 @@ pub struct Piece {
     rotation: Direction,
     pos: Position,
 }
-impl Default for Piece {
-    fn default() -> Self {
-        Self {
-            shape: 1,
-            rotation: Direction::UP,
-            pos: Position::new_abs(2, BOARD_WIDTH as i8 / 2),
-        }
-    }
-}
 impl Piece {
     fn random() -> Self {
         let mut rng = rand::thread_rng();
         Self {
             shape: rng.gen_range(0..2),
             rotation: [Direction::UP, Direction::DOWN, Direction::LEFT, Direction::RIGHT][rng.gen_range(0..4)],
-            pos: Position::new_abs(2, rng.gen_range(0..(WIDTH-2) as i8)),
+            pos: Position::new_abs(rng.gen_range(3..(WIDTH) as i8), 0),
         }
     }
     pub fn blocks(&self) -> [Block; 16] {
@@ -199,9 +191,9 @@ impl Piece {
                     let res_x = (self.pos.x as i8) + (x as i8);
                     let res_y = (self.pos.y as i8) + (y as i8);
                     blocks[x+y*4].position = Position::new_abs(res_x, res_y);
-                    if res_x >= 3 && res_x < 3 + 9 && res_y < 34 {
+                    //if res_x >= 3 && res_x < 3 + 9 && res_y < 34+3 {
                         blocks[x+y*4].colour = GREEN;
-                    }
+                    //}
                 }
             }
         }
@@ -400,6 +392,7 @@ pub struct Game {
     pub score: u32,
     pub board: ExtendedGrid,
     pub piece: Piece,
+    pub game_over: bool,
 }
 
 impl Game {
@@ -413,7 +406,8 @@ impl Game {
             time: 0,
             score: 0,
             board: ExtendedGrid::default(),
-            piece: Piece::default(),
+            piece: Piece::random(),
+            game_over: false,
         }
     }
 
@@ -428,21 +422,26 @@ impl Game {
     }
 
     pub fn update(&mut self, dir: Direction) {
-        if dir == Direction::UP {
-            println!("Save");
-            self.save();
+        if self.game_over {
+            return;
         }
+        let mut next_piece = self.piece.clone();
         match dir {
-            Direction::UP => (),//self.piece.rotation = self.piece.rotation.next(),
-            Direction::DOWN => self.piece.pos.offset(0, 1),
-            Direction::LEFT => self.piece.pos.offset(-1, 0),
-            Direction::RIGHT => {
-                println!("Right!");
-                println!("Before: {:?}", self.piece.pos);
-                self.piece.pos.offset(1, 0);
-                println!("After: {:?}", self.piece.pos);
-            },
+            Direction::UP => next_piece.rotation = next_piece.rotation.next(),
+            Direction::DOWN => next_piece.pos.offset(0, 1),
+            Direction::LEFT => next_piece.pos.offset(-1, 0),
+            Direction::RIGHT => next_piece.pos.offset(1, 0),
         }
+        if self.check_collision(&next_piece) {
+            // Don't collide on rotation or sideways move
+            if dir == Direction::DOWN {
+                self.save();
+                self.piece = Piece::random();
+            }
+            println!("Collision");
+        } else {
+            self.piece = next_piece;
+        };
 
     }
 
@@ -454,8 +453,38 @@ impl Game {
         }
     }
 
+    fn check_collision(&self, piece: &Piece) -> bool {
+        for b in piece.blocks() {
+            if b.colour == GREEN {
+                println!("Test: {:?}", b);
+                if self.board.0[b.position.x as usize][b.position.y as usize] == 0xFF {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
     pub fn next_tick(&mut self, _dt: f64) {
-        //self.piece.pos.offset(0, 1);
+        if self.game_over {
+            return;
+        }
+        let mut next_piece = self.piece.clone();
+        next_piece.pos.offset(0, 1);
+        println!("Current: {:?}", self.piece);
+        println!("Next: {:?}", next_piece);
+        println!("");
+        if self.check_collision(&next_piece) {
+            self.save();
+            self.piece = Piece::random();
+            println!("Rock bottom");
+            if self.check_collision(&self.piece) {
+                // Game Over
+                self.game_over = true;
+            }
+        } else {
+            self.piece = next_piece;
+        };
 
         if self.snake.alive {
             self.snake.perform_next(&mut self.food.position);
