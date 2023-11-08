@@ -34,7 +34,7 @@ impl Render {
         while let Some(e) = self.events.next(&mut self.window) {
             if let Some(args) = e.render_args() {
                 self.render_game(&args, &game, &e);
-            }jj
+            }
 
             if let Some(args) = e.update_args() {
                 game.next_tick(args.dt);
@@ -61,26 +61,48 @@ impl Render {
     }
 
     fn render_game(&mut self, _args: &RenderArgs, game: &Game, e: &Event) {
+        // Clear
         self.window.draw_2d(e, |_, g, _| {
             clear([1.0; 4], g);
         });
+
+        // Draw body
         //for b in game.snake.body.iter() {
         //    self.render_block(&b, e);
         //}
+
+        // Draw food
+        //self.render_block(&game.food, e);
+
         for b in game.piece.blocks() {
             if b.colour == GREEN {
                 self.render_block(&b, e);
-                println!("Block: {:?}", b);
+                //println!("Block: {:?}", b);
             }
         }
-        //self.render_block(&game.food, e);
+        for b in game.board.blocks() {
+            //println!("Block: {:?}", b);
+            self.render_block(&b, e);
+        }
     }
 
     fn render_block(&mut self, block: &Block, e: &Event) {
-        let x = x - OFF_U8;
-
+        if block.colour != GREEN {
+            return;
+        }
         use graphics::math::Matrix2d;
 
+        let x = block.position.x as usize;
+        let y = block.position.y as usize;
+        let x = x - 3;
+        // It seems piston already ignores this by itself, if you draw off-screen
+        //if x >= WIDTH || y >= HEIGHT {
+        //    // Avoid crash if out of bounds
+        //    return;
+        //}
+
+        // TODO: Transforming after apply the border, stretches the border unequally, which we
+        // don't want
         let square_ = graphics::rectangle::Rectangle::new(block.colour).border(graphics::rectangle::Border {
             color: BLACK,
             radius: 0.01,

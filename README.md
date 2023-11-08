@@ -18,6 +18,14 @@ $ cd snake_01
 $ cargo run
 ```
 
+```
+# Ledris
+# With module
+> cargo run --no-default-features --features ledris,ledmatrix
+# Without module
+> cargo run --no-default-features --features ledris,piston
+```
+
 
 ## License
 
