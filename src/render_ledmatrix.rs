@@ -1,6 +1,6 @@
 use crate::constants::*;
-#[cfg(feature = "ledris")]
-use crate::ledris::{Block, Direction, Game};
+#[cfg(feature = "blockdrop")]
+use crate::blockdrop::{Block, Direction, Game};
 #[cfg(feature = "snake")]
 use crate::game::{Block, Brain, Direction, Game};
 use crate::ledmatrix::*;
@@ -126,7 +126,7 @@ impl Render {
         render_matrix_port(&mut self.serialport, &self.grid.0);
     }
 
-    #[cfg(feature = "ledris")]
+    #[cfg(feature = "blockdrop")]
     fn render_game(&mut self, _args: &RenderArgs, game: &Game, e: &Event) {
         // Clear
         self.window.draw_2d(e, |_, g, _| {
@@ -171,14 +171,14 @@ impl Render {
         self.render_block_piston(block, e);
     }
     fn render_block_ledmatrix(&mut self, block: &Block) {
-        #[cfg(feature = "ledris")]
+        #[cfg(feature = "blockdrop")]
         if block.colour != GREEN {
             return;
         }
         // println!("X: {:?}, Y: {:?}, Color: {:?}", block.position.x, block.position.y, block.colour);
         let x = block.position.x as usize;
         let y = block.position.y as usize;
-        #[cfg(feature = "ledris")]
+        #[cfg(feature = "blockdrop")]
         let x = x - 3;
         if x >= WIDTH || y >= HEIGHT {
             // Avoid crash if out of bounds
@@ -196,7 +196,7 @@ impl Render {
         };
     }
     fn render_block_piston(&mut self, block: &Block, e: &Event) {
-        #[cfg(feature = "ledris")]
+        #[cfg(feature = "blockdrop")]
         if block.colour != GREEN {
             return;
         }
@@ -204,7 +204,7 @@ impl Render {
 
         let x = block.position.x as usize;
         let y = block.position.y as usize;
-        #[cfg(feature = "ledris")]
+        #[cfg(feature = "blockdrop")]
         let x = x - 3;
         // It seems piston already ignores this by itself, if you draw off-screen
         //if x >= WIDTH || y >= HEIGHT {

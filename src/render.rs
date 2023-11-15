@@ -1,6 +1,6 @@
 use crate::constants::*;
-#[cfg(feature = "ledris")]
-use crate::ledris::{Block, Direction, Game, OFF_U8, OFF_I8};
+#[cfg(feature = "blockdrop")]
+use crate::blockdrop::{Block, Direction, Game, OFF_U8, OFF_I8};
 #[cfg(feature = "snake")]
 use crate::game::{Block, Brain, Direction, Game};
 
@@ -76,7 +76,7 @@ impl Render {
         self.render_block(&game.food, e);
     }
 
-    #[cfg(feature = "ledris")]
+    #[cfg(feature = "blockdrop")]
     fn render_game(&mut self, _args: &RenderArgs, game: &Game, e: &Event) {
         // Clear
         self.window.draw_2d(e, |_, g, _| {
@@ -97,7 +97,7 @@ impl Render {
     }
 
     fn render_block(&mut self, block: &Block, e: &Event) {
-        #[cfg(feature = "ledris")]
+        #[cfg(feature = "blockdrop")]
         if block.colour != GREEN {
             return;
         }
@@ -105,7 +105,7 @@ impl Render {
 
         let x = block.position.x as usize;
         let y = block.position.y as usize;
-        #[cfg(feature = "ledris")]
+        #[cfg(feature = "blockdrop")]
         let x = x - 3;
         // It seems piston already ignores this by itself, if you draw off-screen
         //if x >= WIDTH || y >= HEIGHT {

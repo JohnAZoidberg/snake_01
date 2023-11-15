@@ -19,11 +19,11 @@ $ cargo run
 ```
 
 ```
-# Ledris
+# Blockdrop
 # With module
-> cargo run --no-default-features --features ledris,ledmatrix
+> cargo run --no-default-features --features blockdrop,ledmatrix
 # Without module
-> cargo run --no-default-features --features ledris,piston
+> cargo run --no-default-features --features blockdrop,piston
 ```
 
 
