@@ -60,6 +60,7 @@ impl Render {
         }
     }
 
+    #[cfg(feature = "snake")]
     fn render_game(&mut self, _args: &RenderArgs, game: &Game, e: &Event) {
         // Clear
         self.window.draw_2d(e, |_, g, _| {
@@ -67,12 +68,20 @@ impl Render {
         });
 
         // Draw body
-        //for b in game.snake.body.iter() {
-        //    self.render_block(&b, e);
-        //}
+        for b in game.snake.body.iter() {
+            self.render_block(&b, e);
+        }
 
         // Draw food
-        //self.render_block(&game.food, e);
+        self.render_block(&game.food, e);
+    }
+
+    #[cfg(feature = "ledris")]
+    fn render_game(&mut self, _args: &RenderArgs, game: &Game, e: &Event) {
+        // Clear
+        self.window.draw_2d(e, |_, g, _| {
+            clear([1.0; 4], g);
+        });
 
         for b in game.piece.blocks() {
             if b.colour == GREEN {
@@ -80,6 +89,7 @@ impl Render {
                 //println!("Block: {:?}", b);
             }
         }
+
         for b in game.board.blocks() {
             //println!("Block: {:?}", b);
             self.render_block(&b, e);
@@ -87,6 +97,7 @@ impl Render {
     }
 
     fn render_block(&mut self, block: &Block, e: &Event) {
+        #[cfg(feature = "ledris")]
         if block.colour != GREEN {
             return;
         }
@@ -94,6 +105,7 @@ impl Render {
 
         let x = block.position.x as usize;
         let y = block.position.y as usize;
+        #[cfg(feature = "ledris")]
         let x = x - 3;
         // It seems piston already ignores this by itself, if you draw off-screen
         //if x >= WIDTH || y >= HEIGHT {

@@ -107,6 +107,26 @@ impl Render {
         }
     }
 
+    #[cfg(feature = "snake")]
+    fn render_game(&mut self, _args: &RenderArgs, game: &Game, e: &Event) {
+        // Clear
+        self.window.draw_2d(e, |_, g, _| {
+            clear([1.0; 4], g);
+        });
+        self.grid = Grid::default();
+
+        // Draw body
+        for b in game.snake.body.iter() {
+            self.render_block(&b, e);
+        }
+
+        // Draw food
+        self.render_block(&game.food, e);
+
+        render_matrix_port(&mut self.serialport, &self.grid.0);
+    }
+
+    #[cfg(feature = "ledris")]
     fn render_game(&mut self, _args: &RenderArgs, game: &Game, e: &Event) {
         // Clear
         self.window.draw_2d(e, |_, g, _| {
@@ -151,12 +171,14 @@ impl Render {
         self.render_block_piston(block, e);
     }
     fn render_block_ledmatrix(&mut self, block: &Block) {
+        #[cfg(feature = "ledris")]
         if block.colour != GREEN {
             return;
         }
         // println!("X: {:?}, Y: {:?}, Color: {:?}", block.position.x, block.position.y, block.colour);
         let x = block.position.x as usize;
         let y = block.position.y as usize;
+        #[cfg(feature = "ledris")]
         let x = x - 3;
         if x >= WIDTH || y >= HEIGHT {
             // Avoid crash if out of bounds
@@ -174,6 +196,7 @@ impl Render {
         };
     }
     fn render_block_piston(&mut self, block: &Block, e: &Event) {
+        #[cfg(feature = "ledris")]
         if block.colour != GREEN {
             return;
         }
@@ -181,6 +204,7 @@ impl Render {
 
         let x = block.position.x as usize;
         let y = block.position.y as usize;
+        #[cfg(feature = "ledris")]
         let x = x - 3;
         // It seems piston already ignores this by itself, if you draw off-screen
         //if x >= WIDTH || y >= HEIGHT {

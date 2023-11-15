@@ -26,7 +26,7 @@ pub const CROSSOVER_PROBABILITY: f64 = 0.01;
 
 // Game Render Properties
 pub const BLOCK_SIZE: u32 = 30;
-pub const RENDER_UPS: u64 = 10;
+pub const RENDER_UPS: u64 = 7;
 pub const RENDER_FPS_MAX: u64 = 20;
 
 // Q-Learning Properties
