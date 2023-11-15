@@ -13,13 +13,13 @@ const WIDTH: usize = BOARD_WIDTH as usize;
 const HEIGHT: usize = BOARD_HEIGHT as usize;
 
 #[derive(Clone, Debug)]
-pub struct ExtendedGrid(pub [[u8; HEIGHT+3]; WIDTH+2*3]);
+pub struct ExtendedGrid(pub [[u8; HEIGHT + 3]; WIDTH + 2 * 3]);
 impl Default for ExtendedGrid {
     fn default() -> Self {
-        let mut grid = ExtendedGrid([[0; HEIGHT+3]; WIDTH+2*3]);
-        for x in 0..WIDTH+2*3 {
-            for y in 0..HEIGHT+3 {
-                if x < 3 || x >= 3+9 || y > 33 {
+        let mut grid = ExtendedGrid([[0; HEIGHT + 3]; WIDTH + 2 * 3]);
+        for x in 0..WIDTH + 2 * 3 {
+            for y in 0..HEIGHT + 3 {
+                if x < 3 || x >= 3 + 9 || y > 33 {
                     grid.0[x][y] = 0xFF;
                 }
             }
@@ -30,9 +30,9 @@ impl Default for ExtendedGrid {
 }
 impl ExtendedGrid {
     fn remove_row(&mut self, row: usize) {
-        for row in (1..row+1).rev() {
+        for row in (1..row + 1).rev() {
             for x in 0..WIDTH {
-                self.0[x+3][row] = self.0[x+3][row-1];
+                self.0[x + 3][row] = self.0[x + 3][row - 1];
             }
         }
     }
@@ -43,7 +43,7 @@ impl ExtendedGrid {
         for row in (0..HEIGHT).rev() {
             let mut full_row = true;
             for x in 0..WIDTH {
-                if self.0[x+3][row] != 0xFF {
+                if self.0[x + 3][row] != 0xFF {
                     full_row = false;
                 }
             }
@@ -56,17 +56,17 @@ impl ExtendedGrid {
 
         score
     }
-    pub fn blocks(&self) -> [Block; (HEIGHT+3) * (WIDTH+2*3)] {
+    pub fn blocks(&self) -> [Block; (HEIGHT + 3) * (WIDTH + 2 * 3)] {
         let mut blocks = [Block {
             position: Position::new(0, 0),
             colour: YELLOW,
-        }; (HEIGHT+3) * (WIDTH+2*3)];
-        for x in 0..WIDTH+6 {
+        }; (HEIGHT + 3) * (WIDTH + 2 * 3)];
+        for x in 0..WIDTH + 6 {
             for y in 0..HEIGHT {
-                blocks[x+y*(WIDTH+2*3)].position = Position::new(x as i8, y as i8);
+                blocks[x + y * (WIDTH + 2 * 3)].position = Position::new(x as i8, y as i8);
                 // TODO: Why subtract by 2 not 3?
-                if self.0[x][y] == 0xFF && x > 2 && x < WIDTH+6 && y < HEIGHT {
-                    blocks[x+y*(WIDTH+2*3)].colour = GREEN;
+                if self.0[x][y] == 0xFF && x > 2 && x < WIDTH + 6 && y < HEIGHT {
+                    blocks[x + y * (WIDTH + 2 * 3)].colour = GREEN;
                 }
             }
         }
@@ -83,7 +83,7 @@ pub struct ExtendedGridIterator<'a> {
     x: usize,
     y: usize,
 }
-impl <'a>Iterator for ExtendedGridIterator<'a> {
+impl<'a> Iterator for ExtendedGridIterator<'a> {
     type Item = Block;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -94,7 +94,7 @@ impl <'a>Iterator for ExtendedGridIterator<'a> {
                 //println!("x: {:?}, y: {:?}", x, y);
                 self.x = x;
                 self.y = y;
-                if self.grid.0[x][y] == 0xFF && x > 3 && x < WIDTH+6 && y < HEIGHT {
+                if self.grid.0[x][y] == 0xFF && x > 3 && x < WIDTH + 6 && y < HEIGHT {
                     self.y += 1;
                     //println!("Woah");
                     return Some(Block {
@@ -216,9 +216,9 @@ impl Piece {
                 if shape[y][x] == 1 {
                     let res_x = (self.pos.x as i8) + (x as i8);
                     let res_y = (self.pos.y as i8) + (y as i8);
-                    blocks[x+y*4].position = Position::new(res_x, res_y);
+                    blocks[x + y * 4].position = Position::new(res_x, res_y);
                     //if res_x >= 3 && res_x < 3 + 9 && res_y < 34+3 {
-                        blocks[x+y*4].colour = GREEN;
+                    blocks[x + y * 4].colour = GREEN;
                     //}
                 }
             }
@@ -240,8 +240,8 @@ impl Position {
     }
 
     fn offset(&mut self, x: i8, y: i8) {
-        self.x = Position::calc_offset(self.x, x, BOARD_WIDTH+3*2);
-        self.y = Position::calc_offset(self.y, y, BOARD_HEIGHT+3);
+        self.x = Position::calc_offset(self.x, x, BOARD_WIDTH + 3 * 2);
+        self.y = Position::calc_offset(self.y, y, BOARD_HEIGHT + 3);
     }
 
     fn calc_offset(val: u8, offset: i8, max_val: u8) -> u8 {
@@ -345,7 +345,6 @@ impl Game {
         } else {
             self.piece = next_piece;
         };
-
     }
 
     fn save(&mut self) {

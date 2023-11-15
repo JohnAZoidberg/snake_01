@@ -168,4 +168,3 @@ pub fn render_matrix_port(port: &mut Box<dyn SerialPort>, matrix: &[[u8; 34]; 9]
 
     simple_cmd_port(port, Command::DisplayBwImage, &vals);
 }
-

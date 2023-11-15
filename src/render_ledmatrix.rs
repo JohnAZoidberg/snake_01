@@ -1,13 +1,13 @@
-use crate::constants::*;
 #[cfg(feature = "blockdrop")]
 use crate::blockdrop::{Block, Direction, Game};
+use crate::constants::*;
 #[cfg(feature = "snake")]
 use crate::game::{Block, Brain, Direction, Game};
 use crate::ledmatrix::*;
 
 use piston_window::*;
-use std::time::Duration;
 use serialport::SerialPort;
+use std::time::Duration;
 
 pub const WIDTH: usize = 9;
 pub const HEIGHT: usize = 34;
@@ -47,7 +47,10 @@ impl Render {
             .unwrap(),
             events: Events::new(EventSettings::new().ups(RENDER_UPS).max_fps(RENDER_FPS_MAX)),
             // ledmatrix
-            serialport: serialport::new(serialdev, 115_200).timeout(SERIAL_TIMEOUT).open().unwrap(),
+            serialport: serialport::new(serialdev, 115_200)
+                .timeout(SERIAL_TIMEOUT)
+                .open()
+                .unwrap(),
             grid: Grid::default(),
         }
     }
@@ -192,7 +195,7 @@ impl Render {
             // Green
             [0.0, 1.0, 0.0, 1.0] => 0xFF,
             // Other
-            _ => return,//0x00,
+            _ => return, //0x00,
         };
     }
     fn render_block_piston(&mut self, block: &Block, e: &Event) {
