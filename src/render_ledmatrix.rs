@@ -7,6 +7,7 @@ use crate::ledmatrix::*;
 
 use piston_window::*;
 use std::time::Duration;
+use serialport::SerialPort;
 
 pub const WIDTH: usize = 9;
 pub const HEIGHT: usize = 34;
@@ -23,7 +24,7 @@ impl Default for Grid {
 pub struct Render {
     window: PistonWindow,
     events: Events,
-    serialdev: String,
+    serialport: Box<dyn SerialPort>,
     grid: Grid,
 }
 
@@ -33,6 +34,7 @@ impl Render {
         println!("Devs: {:?}", res);
 
         let (devs, _waited) = res;
+        let serialdev = devs.iter().last().unwrap().to_string();
         Render {
             window: WindowSettings::new(
                 NAME,
@@ -45,7 +47,7 @@ impl Render {
             .unwrap(),
             events: Events::new(EventSettings::new().ups(RENDER_UPS).max_fps(RENDER_FPS_MAX)),
             // ledmatrix
-            serialdev: devs[0].to_string(),
+            serialport: serialport::new(serialdev, 115_200).timeout(SERIAL_TIMEOUT).open().unwrap(),
             grid: Grid::default(),
         }
     }
@@ -132,7 +134,7 @@ impl Render {
         }
 
         // Flush to matrix
-        render_matrix(&self.serialdev, &self.grid.0);
+        render_matrix_port(&mut self.serialport, &self.grid.0);
         //let mut port = serialport::new(&self.serialdev, 115_200)
         //.timeout(SERIAL_TIMEOUT)
         //.open()

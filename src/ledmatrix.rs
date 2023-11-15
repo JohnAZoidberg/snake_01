@@ -149,3 +149,23 @@ pub fn render_matrix(serialdev: &str, matrix: &[[u8; 34]; 9]) {
 
     simple_cmd(serialdev, Command::DisplayBwImage, &vals);
 }
+
+/// Show a black/white matrix
+/// Send everything in a single command
+pub fn render_matrix_port(port: &mut Box<dyn SerialPort>, matrix: &[[u8; 34]; 9]) {
+    // One bit for each LED, on or off
+    // 39 = ceil(34 * 9 / 8)
+    let mut vals: [u8; 39] = [0x00; 39];
+
+    for x in 0..9 {
+        for y in 0..34 {
+            let i = x + 9 * y;
+            if matrix[x][y] == 0xFF {
+                vals[i / 8] |= 1 << (i % 8);
+            }
+        }
+    }
+
+    simple_cmd_port(port, Command::DisplayBwImage, &vals);
+}
+
