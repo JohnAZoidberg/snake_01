@@ -46,6 +46,28 @@ impl Render {
         }
     }
 
+    #[cfg(feature = "snake")]
+    pub fn run_brain<T: Brain>(&mut self, brain: &mut T) {
+        let mut game = Game::new();
+        game.init();
+
+        while let Some(e) = self.events.next(&mut self.window) {
+            if let Some(args) = e.render_args() {
+                self.render_game(&args, &game, &e);
+            }
+
+            if let Some(args) = e.update_args() {
+                let dir = game.get_dir_from_brain(brain);
+                game.update(dir);
+                game.next_tick(args.dt);
+            }
+
+            if let Some(button) = e.press_args() {
+                self.handle_events(button, &mut game);
+            }
+        }
+    }
+
     fn handle_events(&mut self, button: Button, game: &mut Game) {
         match button {
             Button::Keyboard(key) => match key {

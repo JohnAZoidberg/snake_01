@@ -39,7 +39,7 @@ jobs:
       run: cargo build --release --no-default-features --features ledmatrix,blockdrop
 
     - name: Build LED Matrix snake
-      run: cargo build --release --no-default-features --features piston,snake
+      run: cargo build --release --no-default-features --features ledmatrix,snake
 
     - name: Build Piston blockdrop
       run: cargo build --release --no-default-features --features ledmatrix,blockdrop

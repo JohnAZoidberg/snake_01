@@ -5,7 +5,7 @@ authors = ["Sea6 <srideep007sgmail.com>"]
 edition = "2018"
 
 [features]
-default = ["ledmatrix", "blockdrop"]
+default = ["ledmatrix", "snake"]
 ledmatrix = ["serialport", "chrono"]
 piston = []
 snake = []
