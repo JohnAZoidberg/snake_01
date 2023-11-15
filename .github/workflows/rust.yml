@@ -1,19 +1,42 @@
-name: Rust
+name: Check and Build
 
 on:
   push:
-    branches: [ master ]
+    branches: [ '*' ]
   pull_request:
     branches: [ master ]
 
 jobs:
   build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v2
-    - name: Build
+
+    - name: Build default features
       run: cargo build --verbose
+
     - name: Run tests
       run: cargo test --verbose
+
+    - name: Check formatting
+      run: cargo fmt --check
+
+    # - name: Check clippy
+    #   run: cargo clippy
+
+    - name: Build LED Matrix blockdrop
+      run: cargo build --release --no-default-features --features ledmatrix,blockdrop
+
+    - name: Build LED Matrix snake
+      run: cargo build --release --no-default-features --features piston,snake
+
+    - name: Build Piston blockdrop
+      run: cargo build --release --no-default-features --features ledmatrix,blockdrop
+
+    - name: Build Piston snake
+      run: cargo build --release --no-default-features --features piston,snake
