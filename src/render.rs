@@ -106,7 +106,7 @@ impl Render {
         });
 
         for b in game.piece.blocks() {
-            if b.colour == GREEN {
+            if b.colour == Colour::Green {
                 self.render_block(&b, e);
                 //println!("Block: {:?}", b);
             }
@@ -120,7 +120,7 @@ impl Render {
 
     fn render_block(&mut self, block: &Block, e: &Event) {
         #[cfg(feature = "blockdrop")]
-        if block.colour != GREEN {
+        if block.colour != Colour::Green {
             return;
         }
         use graphics::math::Matrix2d;
@@ -137,8 +137,8 @@ impl Render {
 
         // TODO: Transforming after apply the border, stretches the border unequally, which we
         // don't want
-        let square_ = graphics::rectangle::Rectangle::new(block.colour).border(graphics::rectangle::Border {
-            color: BLACK,
+        let square_ = graphics::rectangle::Rectangle::new(block.colour.into()).border(graphics::rectangle::Border {
+            color: Colour::Black.into(),
             radius: 0.01,
         });
         let dims_ =

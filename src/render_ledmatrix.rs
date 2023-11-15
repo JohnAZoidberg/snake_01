@@ -146,7 +146,7 @@ impl Render {
         //self.render_block(&game.food, e);
 
         for b in game.piece.blocks() {
-            if b.colour == GREEN {
+            if b.colour == Colour::Black {
                 self.render_block(&b, e);
                 //println!("Block: {:?}", b);
             }
@@ -175,7 +175,7 @@ impl Render {
     }
     fn render_block_ledmatrix(&mut self, block: &Block) {
         #[cfg(feature = "blockdrop")]
-        if block.colour != GREEN {
+        if block.colour != Colour::Green {
             return;
         }
         // println!("X: {:?}, Y: {:?}, Color: {:?}", block.position.x, block.position.y, block.colour);
@@ -189,18 +189,18 @@ impl Render {
         }
         self.grid.0[x][y] = match block.colour {
             // Red
-            [1.0, 0.0, 0.0, 1.0] => 0xFF,
+            Colour::Red => 0xFF,
             // Yellow
-            [1.0, 1.0, 0.0, 1.0] => 0xFF,
+            Colour::Yellow => 0xFF,
             // Green
-            [0.0, 1.0, 0.0, 1.0] => 0xFF,
+            Colour::Green => 0xFF,
             // Other
             _ => return, //0x00,
         };
     }
     fn render_block_piston(&mut self, block: &Block, e: &Event) {
         #[cfg(feature = "blockdrop")]
-        if block.colour != GREEN {
+        if block.colour != Colour::Green {
             return;
         }
         use graphics::math::Matrix2d;
@@ -217,8 +217,8 @@ impl Render {
 
         // TODO: Transforming after apply the border, stretches the border unequally, which we
         // don't want
-        let square_ = graphics::rectangle::Rectangle::new(block.colour).border(graphics::rectangle::Border {
-            color: BLACK,
+        let square_ = graphics::rectangle::Rectangle::new(block.colour.into()).border(graphics::rectangle::Border {
+            color: Colour::Black.into(),
             radius: 0.01,
         });
         let dims_ =

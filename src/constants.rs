@@ -10,6 +10,25 @@ pub const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
 pub const YELLOW: [f32; 4] = [1.0, 1.0, 0.0, 1.0];
 pub const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Colour {
+    Red,
+    Green,
+    Yellow,
+    Black,
+}
+
+impl From<Colour> for [f32; 4] {
+    fn from(val: Colour) -> Self {
+        match val {
+            Colour::Red => RED,
+            Colour::Green => GREEN,
+            Colour::Yellow => YELLOW,
+            Colour::Black => BLACK,
+        }
+    }
+}
+
 // Neural Network Game
 pub const NUM_INDIVIDUALS: u32 = 1000;
 pub const NUM_GAMES_NN: u32 = 20;

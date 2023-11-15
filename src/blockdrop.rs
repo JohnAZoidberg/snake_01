@@ -59,14 +59,14 @@ impl ExtendedGrid {
     pub fn blocks(&self) -> [Block; (HEIGHT + 3) * (WIDTH + 2 * 3)] {
         let mut blocks = [Block {
             position: Position::new(0, 0),
-            colour: YELLOW,
+            colour: Colour::Yellow,
         }; (HEIGHT + 3) * (WIDTH + 2 * 3)];
         for x in 0..WIDTH + 6 {
             for y in 0..HEIGHT {
                 blocks[x + y * (WIDTH + 2 * 3)].position = Position::new(x as i8, y as i8);
                 // TODO: Why subtract by 2 not 3?
                 if self.0[x][y] == 0xFF && x > 2 && x < WIDTH + 6 && y < HEIGHT {
-                    blocks[x + y * (WIDTH + 2 * 3)].colour = GREEN;
+                    blocks[x + y * (WIDTH + 2 * 3)].colour = Colour::Green;
                 }
             }
         }
@@ -99,7 +99,7 @@ impl<'a> Iterator for ExtendedGridIterator<'a> {
                     //println!("Woah");
                     return Some(Block {
                         position: Position::new(self.x as i8, self.y as i8),
-                        colour: GREEN,
+                        colour: Colour::Green,
                     });
                 }
             }
@@ -208,7 +208,7 @@ impl Piece {
         let ((off_x, off_y), shape) = PIECES[self.shape][self.rotation as usize];
         let mut blocks = [Block {
             position: Position::new(0, 0),
-            colour: YELLOW,
+            colour: Colour::Yellow,
         }; 16];
 
         for x in 0..4 {
@@ -218,7 +218,7 @@ impl Piece {
                     let res_y = (self.pos.y as i8) + (y as i8);
                     blocks[x + y * 4].position = Position::new(res_x, res_y);
                     //if res_x >= 3 && res_x < 3 + 9 && res_y < 34+3 {
-                    blocks[x + y * 4].colour = GREEN;
+                    blocks[x + y * 4].colour = Colour::Green;
                     //}
                 }
             }
@@ -276,7 +276,7 @@ impl fmt::Debug for Position {
 #[derive(Clone, Copy, Debug)]
 pub struct Block {
     pub position: Position,
-    pub colour: [f32; 4],
+    pub colour: Colour,
 }
 
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -349,7 +349,7 @@ impl Game {
 
     fn save(&mut self) {
         for b in self.piece.blocks() {
-            if b.colour == GREEN {
+            if b.colour == Colour::Green {
                 self.board.0[b.position.x as usize][b.position.y as usize] = 0xFF;
             }
         }
@@ -357,7 +357,7 @@ impl Game {
 
     fn check_collision(&self, piece: &Piece) -> bool {
         for b in piece.blocks() {
-            if b.colour == GREEN {
+            if b.colour == Colour::Green {
                 //println!("Test: {:?}", b);
                 if self.board.0[b.position.x as usize][b.position.y as usize] == 0xFF {
                     return true;

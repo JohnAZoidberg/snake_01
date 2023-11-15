@@ -69,7 +69,7 @@ impl fmt::Debug for Position {
 
 pub struct Block {
     pub position: Position,
-    pub colour: [f32; 4],
+    pub colour: Colour,
 }
 
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -104,15 +104,15 @@ impl Snake {
             body: VecDeque::from(vec![
                 Block {
                     position: Position::new(),
-                    colour: YELLOW,
+                    colour: Colour::Yellow,
                 },
                 Block {
                     position: Position::new_offset(-1, 0),
-                    colour: GREEN,
+                    colour: Colour::Green,
                 },
                 Block {
                     position: Position::new_offset(-2, 0),
-                    colour: GREEN,
+                    colour: Colour::Green,
                 },
             ]),
             direction: Direction::UP,
@@ -176,10 +176,10 @@ impl Snake {
     fn eat_next(&mut self, pos: &mut Position) {
         let head = Block {
             position: *pos,
-            colour: YELLOW,
+            colour: Colour::Yellow,
         };
         self.body.push_front(head);
-        self.body[1].colour = GREEN;
+        self.body[1].colour = Colour::Green;
     }
 }
 
@@ -196,7 +196,7 @@ impl Game {
             snake: Snake::new(),
             food: Block {
                 position: Position::new(),
-                colour: RED,
+                colour: Colour::Red,
             },
             time: 0,
             score: 0,
