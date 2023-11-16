@@ -1,4 +1,4 @@
-pub static NAME: &str = "Snake v01";
+pub static NAME: &str = "Framework LED Matrix Games";
 
 // Board Dimensions
 pub const BOARD_WIDTH: u8 = 9;

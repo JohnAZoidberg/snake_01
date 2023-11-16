@@ -1,5 +1,7 @@
 #[cfg(feature = "blockdrop")]
 mod blockdrop;
+#[cfg(feature = "breakout")]
+mod breakout;
 mod constants;
 #[cfg(feature = "snake")]
 mod game;
@@ -20,6 +22,8 @@ use rayon::prelude::*;
 
 #[cfg(feature = "blockdrop")]
 use crate::blockdrop::Game;
+#[cfg(feature = "breakout")]
+use crate::breakout::Game;
 use crate::constants::*;
 #[cfg(feature = "snake")]
 use crate::game::{Brain, Game};
@@ -50,7 +54,7 @@ fn main() {
         }
         #[cfg(feature = "snake")]
         GameType::QLearning => iterate_qls(NUM_QLS, NUM_GAMES_QL, fitness_function_ql),
-        #[cfg(feature = "blockdrop")]
+        #[cfg(any(feature = "blockdrop", feature = "breakout"))]
         _ => render_game(),
     }
 }

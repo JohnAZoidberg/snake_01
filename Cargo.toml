@@ -10,6 +10,7 @@ ledmatrix = ["serialport", "chrono"]
 piston = []
 snake = []
 blockdrop = []
+breakout = []
 
 [dependencies]
 rand = "0.8.5"

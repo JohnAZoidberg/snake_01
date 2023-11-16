@@ -1,5 +1,7 @@
 #[cfg(feature = "blockdrop")]
 use crate::blockdrop::{Block, Direction, Game, OFF_I8, OFF_U8};
+#[cfg(feature = "breakout")]
+use crate::breakout::{Block, Direction, Game};
 use crate::constants::*;
 #[cfg(feature = "snake")]
 use crate::game::{Block, Brain, Direction, Game};
@@ -98,23 +100,39 @@ impl Render {
         self.render_block(&game.food, e);
     }
 
-    #[cfg(feature = "blockdrop")]
+    #[cfg(any(feature = "blockdrop", feature = "breakout"))]
     fn render_game(&mut self, _args: &RenderArgs, game: &Game, e: &Event) {
         // Clear
         self.window.draw_2d(e, |_, g, _| {
             clear([1.0; 4], g);
         });
 
+        #[cfg(feature = "blockdrop")]
         for b in game.piece.blocks() {
             if b.colour == Colour::Green {
                 self.render_block(&b, e);
                 //println!("Block: {:?}", b);
             }
         }
-
+        #[cfg(feature = "blockdrop")]
         for b in game.board.blocks() {
             //println!("Block: {:?}", b);
             self.render_block(&b, e);
+        }
+
+        #[cfg(feature = "breakout")]
+        self.render_block(&game.ball(), e);
+        #[cfg(feature = "breakout")]
+        for b in game.paddle_blocks() {
+            self.render_block(&b, e);
+        }
+
+        #[cfg(feature = "breakout")]
+        for b in game.board_blocks() {
+            if b.colour == Colour::Green {
+                //println!("Block: {:?}", b);
+                self.render_block(&b, e);
+            }
         }
     }
 
