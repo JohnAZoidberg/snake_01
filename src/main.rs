@@ -9,6 +9,8 @@ mod game;
 mod gen_alg;
 #[cfg(feature = "ledmatrix")]
 mod ledmatrix;
+#[cfg(feature = "pong")]
+mod pong;
 #[cfg(feature = "snake")]
 mod qlearn;
 #[cfg(feature = "piston")]
@@ -18,12 +20,14 @@ mod render_ledmatrix;
 
 extern crate rayon;
 
+#[cfg(feature = "snake")]
 use rayon::prelude::*;
 
 #[cfg(feature = "blockdrop")]
 use crate::blockdrop::Game;
 #[cfg(feature = "breakout")]
 use crate::breakout::Game;
+#[cfg(feature = "snake")]
 use crate::constants::*;
 #[cfg(feature = "snake")]
 use crate::game::{Brain, Game};
@@ -54,7 +58,7 @@ fn main() {
         }
         #[cfg(feature = "snake")]
         GameType::QLearning => iterate_qls(NUM_QLS, NUM_GAMES_QL, fitness_function_ql),
-        #[cfg(any(feature = "blockdrop", feature = "breakout"))]
+        #[cfg(any(feature = "blockdrop", feature = "breakout", feature = "pong"))]
         _ => render_game(),
     }
 }

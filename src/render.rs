@@ -5,6 +5,8 @@ use crate::breakout::{Block, Direction, Game};
 use crate::constants::*;
 #[cfg(feature = "snake")]
 use crate::game::{Block, Brain, Direction, Game};
+#[cfg(feature = "pong")]
+use crate::pong::{Block, Direction, Game};
 
 use piston_window::*;
 
@@ -77,6 +79,10 @@ impl Render {
                 Key::Down => game.update(Direction::DOWN),
                 Key::Left => game.update(Direction::LEFT),
                 Key::Right => game.update(Direction::RIGHT),
+                #[cfg(feature = "pong")]
+                Key::A => game.update(Direction::SECOND_LEFT),
+                #[cfg(feature = "pong")]
+                Key::D => game.update(Direction::SECOND_RIGHT),
                 Key::Space => game.init(),
                 _ => {}
             },
@@ -100,7 +106,7 @@ impl Render {
         self.render_block(&game.food, e);
     }
 
-    #[cfg(any(feature = "blockdrop", feature = "breakout"))]
+    #[cfg(any(feature = "blockdrop", feature = "breakout", feature = "pong"))]
     fn render_game(&mut self, _args: &RenderArgs, game: &Game, e: &Event) {
         // Clear
         self.window.draw_2d(e, |_, g, _| {
@@ -120,9 +126,9 @@ impl Render {
             self.render_block(&b, e);
         }
 
-        #[cfg(feature = "breakout")]
+        #[cfg(any(feature = "breakout", feature = "pong"))]
         self.render_block(&game.ball(), e);
-        #[cfg(feature = "breakout")]
+        #[cfg(any(feature = "breakout", feature = "pong"))]
         for b in game.paddle_blocks() {
             self.render_block(&b, e);
         }
