@@ -13,6 +13,9 @@ const HEIGHT_U32: u32 = BOARD_HEIGHT as u32;
 const WIDTH_I8: i8 = BOARD_WIDTH as i8;
 const HEIGHT_I8: i8 = BOARD_HEIGHT as i8;
 
+const PADDLE_WIDTH: usize = 5;
+const PADDLE_WIDTH_U32: u32 = PADDLE_WIDTH as u32;
+
 const WALL_HEIGHT: usize = 15;
 
 #[derive(Copy, Clone)]
@@ -67,8 +70,6 @@ impl Default for Grid {
     }
 }
 
-const PADDLE_WIDTH: usize = 5;
-const PADDLE_WIDTH_U32: u32 = PADDLE_WIDTH as u32;
 pub struct Game {
     pub paddle_pos: u32,
     pub ball_pos: Position,
@@ -137,9 +138,7 @@ impl Game {
         self.board = Grid::default();
         for x in 0..WIDTH {
             for y in 0..WALL_HEIGHT {
-                //if (y < 3 || x > 3) || (x == 3 && y == 3){
-                    self.board.0[x][y] = 0xFF;
-                //}
+                self.board.0[x][y] = 0xFF;
             }
         }
         self.time = 0;
@@ -167,7 +166,7 @@ impl Game {
 
         // Hit something on the left
         if self.ball_pos.x > 0 {
-            let left_pos = &mut self.board.0[self.ball_pos.x as usize-1][self.ball_pos.y as usize];
+            let left_pos = &mut self.board.0[self.ball_pos.x as usize - 1][self.ball_pos.y as usize];
             if self.ball_v.0 < 0 && *left_pos == 0xFF {
                 *left_pos = 0x00;
                 self.score += 1;
@@ -176,8 +175,8 @@ impl Game {
         }
 
         // Hit something on the right
-        if usize::from(self.ball_pos.x+1) < WIDTH {
-            let right_pos = &mut self.board.0[self.ball_pos.x as usize+1][self.ball_pos.y as usize];
+        if usize::from(self.ball_pos.x + 1) < WIDTH {
+            let right_pos = &mut self.board.0[self.ball_pos.x as usize + 1][self.ball_pos.y as usize];
             if self.ball_v.0 > 0 && *right_pos == 0xFF {
                 *right_pos = 0x00;
                 self.score += 1;
@@ -196,7 +195,7 @@ impl Game {
         }
 
         // Hit something on the bottom
-        if usize::from(self.ball_pos.y+1) < HEIGHT {
+        if usize::from(self.ball_pos.y + 1) < HEIGHT {
             let down_pos = &mut self.board.0[self.ball_pos.x as usize][self.ball_pos.y as usize + 1];
             if self.ball_v.1 > 0 && *down_pos == 0xFF {
                 *down_pos = 0x00;
@@ -206,13 +205,12 @@ impl Game {
         }
 
         // Hit up diagonal
-        // TODO: Bottom diagonal. Should be rare enough
         // Skip if we already hit something else.
         // Because a corner with side and top might also have a vertical, but we only bounce off the directly connected, if they exist.
         if dirs.is_empty() && self.ball_pos.y > 0 {
             // Up-right
-            if usize::from(self.ball_pos.x+1) < WIDTH {
-                let up_right_pos = &mut self.board.0[self.ball_pos.x as usize+1][self.ball_pos.y as usize-1];
+            if usize::from(self.ball_pos.x + 1) < WIDTH {
+                let up_right_pos = &mut self.board.0[self.ball_pos.x as usize + 1][self.ball_pos.y as usize - 1];
                 if self.ball_v.0 > 0 && self.ball_v.1 < 0 && *up_right_pos == 0xFF {
                     *up_right_pos = 0x00;
                     self.score += 1;
@@ -222,8 +220,9 @@ impl Game {
                 }
             }
 
+            // Up-left
             if self.ball_pos.x > 0 {
-                let up_left_pos = &mut self.board.0[self.ball_pos.x as usize-1][self.ball_pos.y as usize - 1];
+                let up_left_pos = &mut self.board.0[self.ball_pos.x as usize - 1][self.ball_pos.y as usize - 1];
                 if self.ball_v.0 < 0 && self.ball_v.1 < 0 && *up_left_pos == 0xFF {
                     *up_left_pos = 0x00;
                     self.score += 1;
@@ -233,6 +232,35 @@ impl Game {
                 }
             }
         }
+
+        // Hit down diagonal
+        // Skip if we already hit something else.
+        // Because a corner with side and top might also have a vertical, but we only bounce off the directly connected, if they exist.
+        //if dirs.is_empty() {
+        //    // Down-right
+        //    if usize::from(self.ball_pos.y+1) < HEIGHT {
+        //        let down_right_pos = &mut self.board.0[self.ball_pos.x as usize+1][self.ball_pos.y as usize+1];
+        //        if self.ball_v.0 > 0 && self.ball_v.1 > 0 && *down_right_pos == 0xFF {
+        //            *down_right_pos = 0x00;
+        //            self.score += 1;
+        //            dirs.push(Direction::RIGHT);
+        //            dirs.push(Direction::DOWN);
+        //            return dirs;
+        //        }
+        //    }
+
+        //    // Down-left
+        //    if self.ball_pos.x > 0 {
+        //        let down_left_pos = &mut self.board.0[self.ball_pos.x as usize-1][self.ball_pos.y as usize + 1];
+        //        if self.ball_v.0 < 0 && self.ball_v.1 > 0 && *down_left_pos == 0xFF {
+        //            *down_left_pos = 0x00;
+        //            self.score += 1;
+        //            dirs.push(Direction::LEFT);
+        //            dirs.push(Direction::DOWN);
+        //            return dirs;
+        //        }
+        //    }
+        //}
 
         dirs
     }
@@ -249,10 +277,10 @@ impl Game {
                 Direction::UP | Direction::DOWN => (self.ball_v.0, -self.ball_v.1),
                 Direction::LEFT | Direction::RIGHT => (-self.ball_v.0, self.ball_v.1),
             };
-        };
+        }
 
         // Bounce off the walls
-        if (self.ball_v.0 < 0 && self.ball_pos.x == 0) || (self.ball_v.0 > 0 && self.ball_pos.x+1 == WIDTH as u8) {
+        if (self.ball_v.0 < 0 && self.ball_pos.x == 0) || (self.ball_v.0 > 0 && self.ball_pos.x + 1 == WIDTH as u8) {
             self.ball_v = (-self.ball_v.0, self.ball_v.1);
         }
 
@@ -263,29 +291,30 @@ impl Game {
 
         // Bounce off the paddle
         // TODO: Change velocity vector based on bounce angle
-        let above_padel = self.ball_pos.x as u32 >= self.paddle_pos && self.ball_pos.x as u32 <= self.paddle_pos + PADDLE_WIDTH_U32;
-        if self.ball_v.1 > 0 && self.ball_pos.y+2 == HEIGHT as u8 && above_padel  {
-            let offset = (self.ball_pos.x as i8) - (self.paddle_pos + PADDLE_WIDTH_U32 / 2)as i8;
+        let above_padel =
+            self.ball_pos.x as u32 >= self.paddle_pos && self.ball_pos.x as u32 <= self.paddle_pos + PADDLE_WIDTH_U32;
+        if self.ball_v.1 > 0 && self.ball_pos.y + 2 == HEIGHT as u8 && above_padel {
+            let offset = (self.ball_pos.x as i8) - (self.paddle_pos + PADDLE_WIDTH_U32 / 2) as i8;
             //println!("Offset: {:?}", offset);
             self.ball_v = match offset {
-                -3 => (-1, -1),
-                -2 => (-1, -1),
-                -1 => (-1, -1),
+                -3 => (1, -1),
+                -2 => (1, -1),
+                -1 => (1, -1),
                 0 => (0, -1),
-                1 => (1, -1),
-                2 => (1, -1),
-                3 => (1, -1),
-                _ => self.ball_v
+                1 => (-1, -1),
+                2 => (-1, -1),
+                3 => (-1, -1),
+                _ => self.ball_v,
             };
         }
 
         let mut new_x = ((self.ball_pos.x as i32) + self.ball_v.0) as i8;
         let mut new_y = ((self.ball_pos.y as i32) + self.ball_v.1) as i8;
-        if new_x >= WIDTH_I8-1 {
-            new_x = WIDTH_I8-1;
+        if new_x >= WIDTH_I8 - 1 {
+            new_x = WIDTH_I8 - 1;
         }
-        if new_y >= HEIGHT_I8-1 {
-            new_y = HEIGHT_I8-1;
+        if new_y >= HEIGHT_I8 - 1 {
+            new_y = HEIGHT_I8 - 1;
         }
         if new_x < 0 {
             new_x = 0;
@@ -295,7 +324,7 @@ impl Game {
         }
 
         // Passed by the paddle to the bottom
-        if self.ball_pos.y+1 == HEIGHT as u8 {
+        if self.ball_pos.y + 1 == HEIGHT as u8 {
             self.game_over = true;
             return;
         }
