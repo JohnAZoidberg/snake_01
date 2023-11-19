@@ -41,8 +41,20 @@ jobs:
     - name: Build LED Matrix snake
       run: cargo build --release --no-default-features --features ledmatrix,snake
 
+    # - name: Build LED Matrix breakout
+    #   run: cargo build --release --no-default-features --features ledmatrix,breakout
+
+    # - name: Build LED Matrix pong
+    #   run: cargo build --release --no-default-features --features ledmatrix,pong
+
     - name: Build Piston blockdrop
       run: cargo build --release --no-default-features --features ledmatrix,blockdrop
 
     - name: Build Piston snake
       run: cargo build --release --no-default-features --features piston,snake
+
+    - name: Build Piston pong
+      run: cargo build --release --no-default-features --features piston,pong
+
+    - name: Build Piston breakout
+      run: cargo build --release --no-default-features --features piston,breakout
