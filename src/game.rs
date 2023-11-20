@@ -79,6 +79,10 @@ pub enum Direction {
     DOWN,
     LEFT,
     RIGHT,
+    SECOND_UP,
+    SECOND_DOWN,
+    SECOND_LEFT,
+    SECOND_RIGHT,
 }
 
 impl Direction {
@@ -88,6 +92,11 @@ impl Direction {
             Direction::RIGHT => Direction::DOWN,
             Direction::DOWN => Direction::LEFT,
             Direction::LEFT => Direction::UP,
+            _ => unimplemented!(),
+            // Direction::SECOND_UP => Direction::SECOND_RIGHT,
+            // Direction::SECOND_RIGHT => Direction::SECOND_DOWN,
+            // Direction::SECOND_DOWN => Direction::SECOND_LEFT,
+            // Direction::SECOND_LEFT => Direction::SECOND_UP,
         }
     }
 
@@ -97,6 +106,11 @@ impl Direction {
             Direction::DOWN => Direction::UP,
             Direction::LEFT => Direction::RIGHT,
             Direction::RIGHT => Direction::LEFT,
+            _ => unimplemented!(),
+            // Direction::SECOND_UP => Direction::SECOND_DOWN,
+            // Direction::SECOND_RIGHT => Direction::SECOND_LEFT,
+            // Direction::SECOND_DOWN => Direction::SECOND_UP,
+            // Direction::SECOND_LEFT => Direction::SECOND_RIGHT,
         }
     }
 }

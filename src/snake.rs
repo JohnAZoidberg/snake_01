@@ -72,6 +72,7 @@ impl Snake {
             Direction::UP => current_head.offset(0, -1),
             Direction::LEFT => current_head.offset(-1, 0),
             Direction::DOWN => current_head.offset(0, 1),
+            _ => (),
         }
         current_head
     }

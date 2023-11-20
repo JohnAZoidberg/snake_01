@@ -4,6 +4,9 @@ pub static NAME: &str = "Framework LED Matrix Games";
 pub const BOARD_WIDTH: u8 = 9;
 pub const BOARD_HEIGHT: u8 = 34;
 
+pub const PADDLE_WIDTH: usize = 5;
+pub const PADDLE_WIDTH_U32: u32 = PADDLE_WIDTH as u32;
+
 // Colours
 pub const RED: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
 pub const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];

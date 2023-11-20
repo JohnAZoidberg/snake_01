@@ -1,54 +1,12 @@
 use std::fmt;
 
 use crate::constants::*;
+use crate::game::*;
 
 const WIDTH: usize = BOARD_WIDTH as usize;
 const HEIGHT: usize = BOARD_HEIGHT as usize;
 const WIDTH_U8: u8 = BOARD_WIDTH as u8;
 const HEIGHT_U8: u8 = BOARD_HEIGHT as u8;
-
-const PADDLE_WIDTH: usize = 5;
-const PADDLE_WIDTH_U32: u32 = PADDLE_WIDTH as u32;
-
-#[derive(Copy, Clone)]
-pub struct Position {
-    pub x: u8,
-    pub y: u8,
-}
-
-impl Position {
-    fn new(x: i8, y: i8) -> Position {
-        Position { x: x as u8, y: y as u8 }
-    }
-}
-
-impl PartialEq for Position {
-    fn eq(&self, other: &Self) -> bool {
-        self.x == other.x && self.y == other.y
-    }
-}
-
-impl fmt::Debug for Position {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Point").field("x", &self.x).field("y", &self.y).finish()
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct Block {
-    pub position: Position,
-    pub colour: Colour,
-}
-
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum Direction {
-    UP,
-    DOWN,
-    LEFT,
-    RIGHT,
-    SECOND_LEFT,
-    SECOND_RIGHT,
-}
 
 // --
 
@@ -77,8 +35,8 @@ pub struct Game {
     pub speed: u64,
 }
 
-impl Game {
-    pub fn new() -> Game {
+impl GameT for Game {
+    fn new() -> Game {
         Game {
             _score: Score { _upper: 0, _lower: 0 },
             ball: Ball {
@@ -89,36 +47,14 @@ impl Game {
             speed: 0,
         }
     }
-    pub fn init(&mut self) {
+    fn init(&mut self) {
         self.ball = Ball {
             pos: Position::new(4, 20),
             direction: (0, 1),
         };
     }
-    pub fn ball(&self) -> Block {
-        Block {
-            position: self.ball.pos,
-            colour: Colour::Green,
-        }
-    }
-    pub fn paddle_blocks(&self) -> [Block; PADDLE_WIDTH * 2] {
-        let mut blocks = [Block {
-            position: Position::new(0, 0),
-            colour: Colour::Yellow,
-        }; PADDLE_WIDTH * 2];
 
-        for x in 0..PADDLE_WIDTH {
-            blocks[x].position = Position::new(self.paddles.0 as i8 + x as i8, (HEIGHT - 1) as i8);
-            blocks[x].colour = Colour::Green;
-        }
-        for x in 0..PADDLE_WIDTH {
-            blocks[x + PADDLE_WIDTH].position = Position::new(self.paddles.1 as i8 + x as i8, 0);
-            blocks[x + PADDLE_WIDTH].colour = Colour::Green;
-        }
-
-        blocks
-    }
-    pub fn update(&mut self, dir: Direction) {
+    fn update(&mut self, dir: Direction) {
         match dir {
             Direction::RIGHT => {
                 if self.paddles.0 + PADDLE_WIDTH < WIDTH {
@@ -141,10 +77,11 @@ impl Game {
                 }
             }
             Direction::UP | Direction::DOWN => (),
+            Direction::SECOND_UP | Direction::SECOND_DOWN => (),
         }
     }
 
-    pub fn next_tick(&mut self, _dt: f64) {
+    fn next_tick(&mut self, _dt: f64) {
         self.ball.pos = {
             let (vx, vy) = self.ball.direction;
             let new_pos = add_velocity(self.ball.pos, self.ball.direction);
@@ -181,6 +118,33 @@ impl Game {
             };
             Position::new(x as i8, y as i8)
         };
+    }
+}
+
+impl Game {
+    pub fn ball(&self) -> Block {
+        Block {
+            position: self.ball.pos,
+            colour: Colour::Green,
+        }
+    }
+
+    pub fn paddle_blocks(&self) -> [Block; PADDLE_WIDTH * 2] {
+        let mut blocks = [Block {
+            position: Position::new(0, 0),
+            colour: Colour::Yellow,
+        }; PADDLE_WIDTH * 2];
+
+        for x in 0..PADDLE_WIDTH {
+            blocks[x].position = Position::new(self.paddles.0 as i8 + x as i8, (HEIGHT - 1) as i8);
+            blocks[x].colour = Colour::Green;
+        }
+        for x in 0..PADDLE_WIDTH {
+            blocks[x + PADDLE_WIDTH].position = Position::new(self.paddles.1 as i8 + x as i8, 0);
+            blocks[x + PADDLE_WIDTH].colour = Colour::Green;
+        }
+
+        blocks
     }
 }
 

@@ -267,6 +267,7 @@ impl GameT for Game {
             Direction::DOWN => next_piece.pos.offset(0, 1),
             Direction::LEFT => next_piece.pos.offset(-1, 0),
             Direction::RIGHT => next_piece.pos.offset(1, 0),
+            _ => (),
         }
         if self.check_collision(&next_piece) {
             // Don't collide on rotation or sideways move

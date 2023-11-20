@@ -13,9 +13,6 @@ const HEIGHT_U32: u32 = BOARD_HEIGHT as u32;
 const WIDTH_I8: i8 = BOARD_WIDTH as i8;
 const HEIGHT_I8: i8 = BOARD_HEIGHT as i8;
 
-const PADDLE_WIDTH: usize = 5;
-const PADDLE_WIDTH_U32: u32 = PADDLE_WIDTH as u32;
-
 const WALL_HEIGHT: usize = 15;
 
 #[derive(Copy, Clone)]
@@ -276,6 +273,7 @@ impl Game {
             self.ball_v = match dir {
                 Direction::UP | Direction::DOWN => (self.ball_v.0, -self.ball_v.1),
                 Direction::LEFT | Direction::RIGHT => (-self.ball_v.0, self.ball_v.1),
+                _ => self.ball_v,
             };
         }
 
