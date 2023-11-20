@@ -1,7 +1,7 @@
 #[cfg(feature = "blockdrop")]
-use crate::blockdrop::{Block, Direction, Game};
+use crate::blockdrop::Game;
 use crate::constants::*;
-#[cfg(feature = "snake")]
+#[cfg(any(feature = "snake", feature = "blockdrop"))]
 use crate::game::{Block, Direction, GameT};
 use crate::ledmatrix::*;
 #[cfg(feature = "snake")]

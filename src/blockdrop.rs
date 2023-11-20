@@ -4,6 +4,7 @@ use rand::Rng;
 use std::fmt;
 
 use crate::constants::*;
+use crate::game::*;
 
 pub const OFF: usize = 3;
 pub const OFF_U8: u8 = 3;
@@ -56,6 +57,7 @@ impl ExtendedGrid {
 
         score
     }
+
     pub fn blocks(&self) -> [Block; (HEIGHT + 3) * (WIDTH + 2 * 3)] {
         let mut blocks = [Block {
             position: Position::new(0, 0),
@@ -228,76 +230,6 @@ impl Piece {
     }
 }
 
-#[derive(Copy, Clone)]
-pub struct Position {
-    pub x: u8,
-    pub y: u8,
-}
-
-impl Position {
-    fn new(x: i8, y: i8) -> Position {
-        Position { x: x as u8, y: y as u8 }
-    }
-
-    fn offset(&mut self, x: i8, y: i8) {
-        self.x = Position::calc_offset(self.x, x, BOARD_WIDTH + 3 * 2);
-        self.y = Position::calc_offset(self.y, y, BOARD_HEIGHT + 3);
-    }
-
-    fn calc_offset(val: u8, offset: i8, max_val: u8) -> u8 {
-        if (val == 0 && offset < 0) || (val >= max_val - 1 && offset > 0) {
-            val
-        } else {
-            let off_max = offset as i16 % max_val as i16;
-            if off_max < 0 {
-                let x1 = off_max as u8;
-                let x2 = x1 - std::u8::MAX / 2 - 1 + max_val;
-                let x3 = x2 - std::u8::MAX / 2 - 1;
-                (val + x3) % max_val
-            } else {
-                (val + off_max as u8) % max_val
-            }
-        }
-    }
-}
-
-impl PartialEq for Position {
-    fn eq(&self, other: &Self) -> bool {
-        self.x == other.x && self.y == other.y
-    }
-}
-
-impl fmt::Debug for Position {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Point").field("x", &self.x).field("y", &self.y).finish()
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct Block {
-    pub position: Position,
-    pub colour: Colour,
-}
-
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum Direction {
-    UP,
-    DOWN,
-    LEFT,
-    RIGHT,
-}
-
-impl Direction {
-    fn next(&self) -> Self {
-        match self {
-            Direction::UP => Direction::RIGHT,
-            Direction::RIGHT => Direction::DOWN,
-            Direction::DOWN => Direction::LEFT,
-            Direction::LEFT => Direction::UP,
-        }
-    }
-}
-
 pub struct Game {
     pub time: u32,
     pub score: u32,
@@ -306,8 +238,8 @@ pub struct Game {
     pub game_over: bool,
 }
 
-impl Game {
-    pub fn new() -> Game {
+impl GameT for Game {
+    fn new() -> Game {
         Game {
             time: 0,
             score: 0,
@@ -317,7 +249,7 @@ impl Game {
         }
     }
 
-    pub fn init(&mut self) {
+    fn init(&mut self) {
         self.time = 0;
         self.score = 0;
 
@@ -325,13 +257,13 @@ impl Game {
         self.piece = Piece::random();
     }
 
-    pub fn update(&mut self, dir: Direction) {
+    fn update(&mut self, dir: Direction) {
         if self.game_over {
             return;
         }
         let mut next_piece = self.piece.clone();
         match dir {
-            Direction::UP => next_piece.rotation = next_piece.rotation.next(),
+            Direction::UP => next_piece.rotation = next_piece.rotation.next_cw(),
             Direction::DOWN => next_piece.pos.offset(0, 1),
             Direction::LEFT => next_piece.pos.offset(-1, 0),
             Direction::RIGHT => next_piece.pos.offset(1, 0),
@@ -347,6 +279,24 @@ impl Game {
         };
     }
 
+    fn next_tick(&mut self, _dt: f64) {
+        if self.game_over {
+            return;
+        }
+        let mut next_piece = self.piece.clone();
+        next_piece.pos.offset(0, 1);
+        //println!("Current: {:?}", self.piece);
+        //println!("Next: {:?}", next_piece);
+        //println!("");
+        if self.check_collision(&next_piece) {
+            self.fallen_down();
+        } else {
+            self.piece = next_piece;
+        };
+    }
+}
+
+impl Game {
     fn save(&mut self) {
         for b in self.piece.blocks() {
             if b.colour == Colour::Green {
@@ -380,22 +330,6 @@ impl Game {
             // Game Over
             self.game_over = true;
         }
-    }
-
-    pub fn next_tick(&mut self, _dt: f64) {
-        if self.game_over {
-            return;
-        }
-        let mut next_piece = self.piece.clone();
-        next_piece.pos.offset(0, 1);
-        //println!("Current: {:?}", self.piece);
-        //println!("Next: {:?}", next_piece);
-        //println!("");
-        if self.check_collision(&next_piece) {
-            self.fallen_down();
-        } else {
-            self.piece = next_piece;
-        };
     }
 
     // TODO: Do I need this?

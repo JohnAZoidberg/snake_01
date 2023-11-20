@@ -27,9 +27,15 @@ impl Position {
         pos
     }
 
+    #[cfg(feature = "snake")]
     pub fn offset(&mut self, x: i8, y: i8) {
         self.x = Position::calc_offset(self.x, x, BOARD_WIDTH);
         self.y = Position::calc_offset(self.y, y, BOARD_HEIGHT);
+    }
+    #[cfg(feature = "blockdrop")]
+    pub fn offset(&mut self, x: i8, y: i8) {
+        self.x = Position::calc_offset(self.x, x, BOARD_WIDTH + 3 * 2);
+        self.y = Position::calc_offset(self.y, y, BOARD_HEIGHT + 3);
     }
 
     pub fn calc_offset(val: u8, offset: i8, max_val: u8) -> u8 {
@@ -76,6 +82,15 @@ pub enum Direction {
 }
 
 impl Direction {
+    pub fn next_cw(&self) -> Self {
+        match self {
+            Direction::UP => Direction::RIGHT,
+            Direction::RIGHT => Direction::DOWN,
+            Direction::DOWN => Direction::LEFT,
+            Direction::LEFT => Direction::UP,
+        }
+    }
+
     pub fn opposite(&mut self) -> Direction {
         match self {
             Direction::UP => Direction::DOWN,
