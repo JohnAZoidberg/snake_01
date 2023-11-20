@@ -4,7 +4,7 @@ use itertools::Itertools;
 use rand::Rng;
 
 use crate::constants::*;
-use crate::game::Brain;
+use crate::snake::Brain;
 
 pub struct StateAction {
     pub state: Vec<f64>,

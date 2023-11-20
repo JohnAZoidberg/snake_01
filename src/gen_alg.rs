@@ -4,7 +4,7 @@ use rand::Rng;
 use rand_distr::{Distribution, Normal};
 
 use crate::constants::*;
-use crate::game::Brain;
+use crate::snake::Brain;
 
 fn sigmoid(z: f64) -> f64 {
     let e = std::f64::consts::E;

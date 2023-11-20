@@ -2,7 +2,7 @@
 use crate::blockdrop::{Block, Direction, Game};
 use crate::constants::*;
 #[cfg(feature = "snake")]
-use crate::game::{Block, Brain, Direction, Game};
+use crate::snake::{Block, Brain, Direction, Game};
 use crate::ledmatrix::*;
 
 use piston_window::*;

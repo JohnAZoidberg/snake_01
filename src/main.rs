@@ -4,7 +4,7 @@ mod blockdrop;
 mod breakout;
 mod constants;
 #[cfg(feature = "snake")]
-mod game;
+mod snake;
 #[cfg(feature = "snake")]
 mod gen_alg;
 #[cfg(feature = "ledmatrix")]
@@ -30,7 +30,7 @@ use crate::breakout::Game;
 #[cfg(feature = "snake")]
 use crate::constants::*;
 #[cfg(feature = "snake")]
-use crate::game::{Brain, Game};
+use crate::snake::{Brain, Game};
 #[cfg(feature = "snake")]
 use crate::gen_alg::{Population, NN};
 #[cfg(feature = "snake")]
