@@ -7,8 +7,7 @@ mod breakout;
 mod constants;
 #[cfg(feature = "snake")]
 mod snake;
-#[cfg(feature = "snake")]
-use crate::game::{Block, Direction, GameT};
+use crate::game::GameT;
 #[cfg(feature = "snake")]
 mod gen_alg;
 #[cfg(feature = "ledmatrix")]

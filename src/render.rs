@@ -1,9 +1,8 @@
 #[cfg(feature = "blockdrop")]
 use crate::blockdrop::{Game, OFF_I8, OFF_U8};
 #[cfg(feature = "breakout")]
-use crate::breakout::{Block, Direction, Game};
+use crate::breakout::Game;
 use crate::constants::*;
-#[cfg(any(feature = "snake", feature = "blockdrop", feature = "pong"))]
 use crate::game::{Block, Direction, GameT};
 #[cfg(feature = "pong")]
 use crate::pong::Game;

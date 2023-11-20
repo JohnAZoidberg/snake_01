@@ -5,6 +5,7 @@ use std::collections::VecDeque;
 use std::fmt;
 
 use crate::constants::*;
+use crate::game::*;
 
 const WIDTH: usize = BOARD_WIDTH as usize;
 const HEIGHT: usize = BOARD_HEIGHT as usize;
@@ -14,44 +15,6 @@ const WIDTH_I8: i8 = BOARD_WIDTH as i8;
 const HEIGHT_I8: i8 = BOARD_HEIGHT as i8;
 
 const WALL_HEIGHT: usize = 15;
-
-#[derive(Copy, Clone)]
-pub struct Position {
-    pub x: u8,
-    pub y: u8,
-}
-
-impl Position {
-    fn new(x: i8, y: i8) -> Position {
-        Position { x: x as u8, y: y as u8 }
-    }
-}
-
-impl PartialEq for Position {
-    fn eq(&self, other: &Self) -> bool {
-        self.x == other.x && self.y == other.y
-    }
-}
-
-impl fmt::Debug for Position {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Point").field("x", &self.x).field("y", &self.y).finish()
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct Block {
-    pub position: Position,
-    pub colour: Colour,
-}
-
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum Direction {
-    UP,
-    DOWN,
-    LEFT,
-    RIGHT,
-}
 
 #[derive(Clone, Debug)]
 pub struct Grid(pub [[u8; HEIGHT]; WIDTH]);
@@ -77,8 +40,8 @@ pub struct Game {
     pub game_over: bool,
 }
 
-impl Game {
-    pub fn new() -> Game {
+impl GameT for Game {
+    fn new() -> Game {
         Game {
             paddle_pos: 0,
             ball_pos: Position::new(6, (HEIGHT - 2) as i8),
@@ -90,6 +53,101 @@ impl Game {
         }
     }
 
+    fn init(&mut self) {
+        self.board = Grid::default();
+        for x in 0..WIDTH {
+            for y in 0..WALL_HEIGHT {
+                self.board.0[x][y] = 0xFF;
+            }
+        }
+        self.time = 0;
+        self.score = 0;
+        self.game_over = false;
+    }
+
+    fn update(&mut self, dir: Direction) {
+        if self.game_over {
+            return;
+        }
+
+        let new_ppos = match dir {
+            Direction::LEFT if self.paddle_pos > 0 => self.paddle_pos - 1,
+            Direction::RIGHT if self.paddle_pos + PADDLE_WIDTH_U32 < WIDTH_U32 => self.paddle_pos + 1,
+            _ => self.paddle_pos,
+        };
+        self.paddle_pos = new_ppos;
+    }
+
+    fn next_tick(&mut self, _dt: f64) {
+        if self.game_over {
+            return;
+        }
+
+        // Bounce off the field, if anything was hit
+        for dir in self.hit_field() {
+            //println!("Flipping direction : {:?}", dir);
+            self.ball_v = match dir {
+                Direction::UP | Direction::DOWN => (self.ball_v.0, -self.ball_v.1),
+                Direction::LEFT | Direction::RIGHT => (-self.ball_v.0, self.ball_v.1),
+                _ => self.ball_v,
+            };
+        }
+
+        // Bounce off the walls
+        if (self.ball_v.0 < 0 && self.ball_pos.x == 0) || (self.ball_v.0 > 0 && self.ball_pos.x + 1 == WIDTH as u8) {
+            self.ball_v = (-self.ball_v.0, self.ball_v.1);
+        }
+
+        // Bounce off the top
+        if self.ball_v.1 < 0 && self.ball_pos.y == 0 {
+            self.ball_v = (self.ball_v.0, -self.ball_v.1);
+        }
+
+        // Bounce off the paddle
+        // TODO: Change velocity vector based on bounce angle
+        let above_padel =
+            self.ball_pos.x as u32 >= self.paddle_pos && self.ball_pos.x as u32 <= self.paddle_pos + PADDLE_WIDTH_U32;
+        if self.ball_v.1 > 0 && self.ball_pos.y + 2 == HEIGHT as u8 && above_padel {
+            let offset = (self.ball_pos.x as i8) - (self.paddle_pos + PADDLE_WIDTH_U32 / 2) as i8;
+            //println!("Offset: {:?}", offset);
+            self.ball_v = match offset {
+                -3 => (1, -1),
+                -2 => (1, -1),
+                -1 => (1, -1),
+                0 => (0, -1),
+                1 => (-1, -1),
+                2 => (-1, -1),
+                3 => (-1, -1),
+                _ => self.ball_v,
+            };
+        }
+
+        let mut new_x = ((self.ball_pos.x as i32) + self.ball_v.0) as i8;
+        let mut new_y = ((self.ball_pos.y as i32) + self.ball_v.1) as i8;
+        if new_x >= WIDTH_I8 - 1 {
+            new_x = WIDTH_I8 - 1;
+        }
+        if new_y >= HEIGHT_I8 - 1 {
+            new_y = HEIGHT_I8 - 1;
+        }
+        if new_x < 0 {
+            new_x = 0;
+        }
+        if new_y < 0 {
+            new_y = 0;
+        }
+
+        // Passed by the paddle to the bottom
+        if self.ball_pos.y + 1 == HEIGHT as u8 {
+            self.game_over = true;
+            return;
+        }
+
+        self.ball_pos = Position::new(new_x, new_y);
+    }
+}
+
+impl Game {
     pub fn board_blocks(&self) -> [Block; WIDTH * WALL_HEIGHT] {
         let mut blocks = [Block {
             position: Position::new(0, 0),
@@ -129,31 +187,6 @@ impl Game {
             position: self.ball_pos,
             colour: Colour::Green,
         }
-    }
-
-    pub fn init(&mut self) {
-        self.board = Grid::default();
-        for x in 0..WIDTH {
-            for y in 0..WALL_HEIGHT {
-                self.board.0[x][y] = 0xFF;
-            }
-        }
-        self.time = 0;
-        self.score = 0;
-        self.game_over = false;
-    }
-
-    pub fn update(&mut self, dir: Direction) {
-        if self.game_over {
-            return;
-        }
-
-        let new_ppos = match dir {
-            Direction::LEFT if self.paddle_pos > 0 => self.paddle_pos - 1,
-            Direction::RIGHT if self.paddle_pos + PADDLE_WIDTH_U32 < WIDTH_U32 => self.paddle_pos + 1,
-            _ => self.paddle_pos,
-        };
-        self.paddle_pos = new_ppos;
     }
 
     fn hit_field(&mut self) -> Vec<Direction> {
@@ -260,73 +293,5 @@ impl Game {
         //}
 
         dirs
-    }
-
-    pub fn next_tick(&mut self, _dt: f64) {
-        if self.game_over {
-            return;
-        }
-
-        // Bounce off the field, if anything was hit
-        for dir in self.hit_field() {
-            //println!("Flipping direction : {:?}", dir);
-            self.ball_v = match dir {
-                Direction::UP | Direction::DOWN => (self.ball_v.0, -self.ball_v.1),
-                Direction::LEFT | Direction::RIGHT => (-self.ball_v.0, self.ball_v.1),
-                _ => self.ball_v,
-            };
-        }
-
-        // Bounce off the walls
-        if (self.ball_v.0 < 0 && self.ball_pos.x == 0) || (self.ball_v.0 > 0 && self.ball_pos.x + 1 == WIDTH as u8) {
-            self.ball_v = (-self.ball_v.0, self.ball_v.1);
-        }
-
-        // Bounce off the top
-        if self.ball_v.1 < 0 && self.ball_pos.y == 0 {
-            self.ball_v = (self.ball_v.0, -self.ball_v.1);
-        }
-
-        // Bounce off the paddle
-        // TODO: Change velocity vector based on bounce angle
-        let above_padel =
-            self.ball_pos.x as u32 >= self.paddle_pos && self.ball_pos.x as u32 <= self.paddle_pos + PADDLE_WIDTH_U32;
-        if self.ball_v.1 > 0 && self.ball_pos.y + 2 == HEIGHT as u8 && above_padel {
-            let offset = (self.ball_pos.x as i8) - (self.paddle_pos + PADDLE_WIDTH_U32 / 2) as i8;
-            //println!("Offset: {:?}", offset);
-            self.ball_v = match offset {
-                -3 => (1, -1),
-                -2 => (1, -1),
-                -1 => (1, -1),
-                0 => (0, -1),
-                1 => (-1, -1),
-                2 => (-1, -1),
-                3 => (-1, -1),
-                _ => self.ball_v,
-            };
-        }
-
-        let mut new_x = ((self.ball_pos.x as i32) + self.ball_v.0) as i8;
-        let mut new_y = ((self.ball_pos.y as i32) + self.ball_v.1) as i8;
-        if new_x >= WIDTH_I8 - 1 {
-            new_x = WIDTH_I8 - 1;
-        }
-        if new_y >= HEIGHT_I8 - 1 {
-            new_y = HEIGHT_I8 - 1;
-        }
-        if new_x < 0 {
-            new_x = 0;
-        }
-        if new_y < 0 {
-            new_y = 0;
-        }
-
-        // Passed by the paddle to the bottom
-        if self.ball_pos.y + 1 == HEIGHT as u8 {
-            self.game_over = true;
-            return;
-        }
-
-        self.ball_pos = Position::new(new_x, new_y);
     }
 }
