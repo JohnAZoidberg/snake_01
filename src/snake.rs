@@ -2,93 +2,15 @@ extern crate rand;
 
 use rand::Rng;
 use std::collections::VecDeque;
-use std::fmt;
 
 use crate::constants::*;
+use crate::game::*;
 use crate::gen_alg::NN;
 use crate::qlearn::QLearner;
 
 pub trait Brain {
     fn get_action(&mut self, inputs: &Vec<f64>) -> Option<usize>;
     fn train(&mut self, state_initial: &Vec<f64>, action: usize, reward: f64, state_final: &Vec<f64>) -> Option<bool>;
-}
-
-#[derive(Copy, Clone)]
-pub struct Position {
-    pub x: u8,
-    pub y: u8,
-}
-
-impl Position {
-    fn new() -> Position {
-        Position {
-            x: BOARD_WIDTH / 2,
-            y: BOARD_HEIGHT / 2,
-        }
-    }
-
-    fn new_offset(x: i8, y: i8) -> Position {
-        let mut pos = Position::new();
-        pos.offset(x, y);
-        pos
-    }
-
-    fn offset(&mut self, x: i8, y: i8) {
-        self.x = Position::calc_offset(self.x, x, BOARD_WIDTH);
-        self.y = Position::calc_offset(self.y, y, BOARD_HEIGHT);
-    }
-
-    fn calc_offset(val: u8, offset: i8, max_val: u8) -> u8 {
-        if (val == 0 && offset < 0) || (val >= max_val - 1 && offset > 0) {
-            val
-        } else {
-            let off_max = offset as i16 % max_val as i16;
-            if off_max < 0 {
-                let x1 = off_max as u8;
-                let x2 = x1 - std::u8::MAX / 2 - 1 + max_val;
-                let x3 = x2 - std::u8::MAX / 2 - 1;
-                (val + x3) % max_val
-            } else {
-                (val + off_max as u8) % max_val
-            }
-        }
-    }
-}
-
-impl PartialEq for Position {
-    fn eq(&self, other: &Self) -> bool {
-        self.x == other.x && self.y == other.y
-    }
-}
-
-impl fmt::Debug for Position {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Point").field("x", &self.x).field("y", &self.y).finish()
-    }
-}
-
-pub struct Block {
-    pub position: Position,
-    pub colour: Colour,
-}
-
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum Direction {
-    UP,
-    DOWN,
-    LEFT,
-    RIGHT,
-}
-
-impl Direction {
-    fn opposite(&mut self) -> Direction {
-        match self {
-            Direction::UP => Direction::DOWN,
-            Direction::DOWN => Direction::UP,
-            Direction::LEFT => Direction::RIGHT,
-            Direction::RIGHT => Direction::LEFT,
-        }
-    }
 }
 
 pub struct Snake {
@@ -103,7 +25,7 @@ impl Snake {
         Snake {
             body: VecDeque::from(vec![
                 Block {
-                    position: Position::new(),
+                    position: Position::new_center(),
                     colour: Colour::Yellow,
                 },
                 Block {
@@ -190,12 +112,12 @@ pub struct Game {
     pub score: u32,
 }
 
-impl Game {
-    pub fn new() -> Game {
+impl GameT for Game {
+    fn new() -> Game {
         Game {
             snake: Snake::new(),
             food: Block {
-                position: Position::new(),
+                position: Position::new_center(),
                 colour: Colour::Red,
             },
             time: 0,
@@ -203,18 +125,18 @@ impl Game {
         }
     }
 
-    pub fn init(&mut self) {
+    fn init(&mut self) {
         self.snake = Snake::new();
         self.food.position = self.get_food_pos();
         self.time = 0;
         self.score = 0;
     }
 
-    pub fn update(&mut self, dir: Direction) {
+    fn update(&mut self, dir: Direction) {
         self.snake.update(dir);
     }
 
-    pub fn next_tick(&mut self, _dt: f64) {
+    fn next_tick(&mut self, _dt: f64) {
         if self.snake.alive {
             self.snake.perform_next(&mut self.food.position);
             self.time += 1;
@@ -225,7 +147,9 @@ impl Game {
             }
         }
     }
+}
 
+impl Game {
     pub fn run_brain<T: Brain>(&mut self, brain: &mut T, fitness_function: fn(i64, i64, i64, i64, i64) -> f64) -> f64 {
         self.init();
         let mut fitness: f64 = 0f64;
@@ -363,63 +287,63 @@ mod tests {
 
     #[test]
     fn test_position_new() {
-        let pos = Position::new();
+        let pos = Position::new_center();
         assert_eq!(pos.x, BOARD_WIDTH / 2);
         assert_eq!(pos.y, BOARD_HEIGHT / 2);
     }
 
     #[test]
     fn test_position_offset() {
-        let pos1 = Position::new();
-        let mut pos2 = Position::new();
+        let pos1 = Position::new_center();
+        let mut pos2 = Position::new_center();
         pos2.offset(0, 0);
         assert_eq!(pos2.x, pos1.x);
-        pos2 = Position::new();
+        pos2 = Position::new_center();
         pos2.offset(1, 0);
         assert_eq!(pos2.x, pos1.x + 1);
-        pos2 = Position::new();
+        pos2 = Position::new_center();
         pos2.offset(-1, 0);
         assert_eq!(pos2.x + 1, pos1.x);
-        pos2 = Position::new();
+        pos2 = Position::new_center();
         pos2.offset(BOARD_WIDTH as i8, 0);
         assert_eq!(pos2.x, pos1.x);
-        pos2 = Position::new();
+        pos2 = Position::new_center();
         pos2.offset((BOARD_WIDTH as i8) + 1, 0);
         assert_eq!(pos2.x, pos1.x + 1);
-        pos2 = Position::new();
+        pos2 = Position::new_center();
         pos2.offset(-(BOARD_WIDTH as i8), 0);
         assert_eq!(pos2.x, pos1.x);
-        pos2 = Position::new();
+        pos2 = Position::new_center();
         pos2.offset(-(BOARD_WIDTH as i8) - 1, 0);
         assert_eq!(pos2.x + 1, pos1.x);
     }
 
     #[test]
     fn test_position_new_offset() {
-        let mut pos1 = Position::new();
+        let mut pos1 = Position::new_center();
         let mut pos2 = Position::new_offset(0, 0);
         assert_eq!(pos1, pos2);
-        pos1 = Position::new();
+        pos1 = Position::new_center();
         pos1.offset(1, 0);
         pos2 = Position::new_offset(1, 0);
         assert_eq!(pos1, pos2);
-        pos1 = Position::new();
+        pos1 = Position::new_center();
         pos1.offset(-1, 0);
         pos2 = Position::new_offset(-1, 0);
         assert_eq!(pos1, pos2);
-        pos1 = Position::new();
+        pos1 = Position::new_center();
         pos1.offset(BOARD_WIDTH as i8, 0);
         pos2 = Position::new_offset(BOARD_WIDTH as i8, 0);
         assert_eq!(pos1, pos2);
-        pos1 = Position::new();
+        pos1 = Position::new_center();
         pos1.offset(BOARD_WIDTH as i8 + 1, 0);
         pos2 = Position::new_offset(BOARD_WIDTH as i8 + 1, 0);
         assert_eq!(pos1, pos2);
-        pos1 = Position::new();
+        pos1 = Position::new_center();
         pos1.offset(-(BOARD_WIDTH as i8), 0);
         pos2 = Position::new_offset(-(BOARD_WIDTH as i8), 0);
         assert_eq!(pos1, pos2);
-        pos1 = Position::new();
+        pos1 = Position::new_center();
         pos1.offset(-(BOARD_WIDTH as i8) - 1, 0);
         pos2 = Position::new_offset(-(BOARD_WIDTH as i8) - 1, 0);
         assert_eq!(pos1, pos2);
@@ -430,7 +354,7 @@ mod tests {
         let snake = Snake::new();
         assert_eq!(snake.body.len(), 3);
         assert_eq!(snake.direction, Direction::RIGHT);
-        let pos1 = Position::new();
+        let pos1 = Position::new_center();
         let pos2 = Position::new_offset(-1, 0);
         let pos3 = Position::new_offset(-2, 0);
         assert_eq!(snake.body[0].position, pos1);
@@ -449,7 +373,7 @@ mod tests {
     #[test]
     fn test_snake_check_collide_wall() {
         let snake = Snake::new();
-        let mut pos = Position::new();
+        let mut pos = Position::new_center();
         assert!(snake.check_collide_wall(pos));
         pos = Position::new_offset(1, 0);
         assert!(!snake.check_collide_wall(pos));
@@ -458,7 +382,7 @@ mod tests {
     #[test]
     fn test_snake_check_collide_body() {
         let snake = Snake::new();
-        let mut pos = Position::new();
+        let mut pos = Position::new_center();
         assert!(snake.check_collide_body(pos));
         pos.offset(1, 0);
         assert!(!snake.check_collide_body(pos));
@@ -612,7 +536,7 @@ mod tests {
     fn test_game_next_tick() {
         let mut game = Game::new();
         game.init();
-        let mut pos = Position::new();
+        let mut pos = Position::new_center();
         assert_eq!(game.snake.body[0].position, pos);
         game.next_tick(0.1);
         pos.offset(1, 0);

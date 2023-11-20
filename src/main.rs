@@ -1,3 +1,5 @@
+mod game;
+
 #[cfg(feature = "blockdrop")]
 mod blockdrop;
 #[cfg(feature = "breakout")]
@@ -5,6 +7,8 @@ mod breakout;
 mod constants;
 #[cfg(feature = "snake")]
 mod snake;
+#[cfg(feature = "snake")]
+use crate::game::{Block, Direction, GameT};
 #[cfg(feature = "snake")]
 mod gen_alg;
 #[cfg(feature = "ledmatrix")]
@@ -30,8 +34,6 @@ use crate::breakout::Game;
 #[cfg(feature = "snake")]
 use crate::constants::*;
 #[cfg(feature = "snake")]
-use crate::snake::{Brain, Game};
-#[cfg(feature = "snake")]
 use crate::gen_alg::{Population, NN};
 #[cfg(feature = "snake")]
 use crate::qlearn::QLearner;
@@ -39,6 +41,8 @@ use crate::qlearn::QLearner;
 use crate::render::Render;
 #[cfg(feature = "ledmatrix")]
 use crate::render_ledmatrix::Render;
+#[cfg(feature = "snake")]
+use crate::snake::{Brain, Game};
 
 enum GameType {
     Human,

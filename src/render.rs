@@ -4,9 +4,11 @@ use crate::blockdrop::{Block, Direction, Game, OFF_I8, OFF_U8};
 use crate::breakout::{Block, Direction, Game};
 use crate::constants::*;
 #[cfg(feature = "snake")]
-use crate::snake::{Block, Brain, Direction, Game};
+use crate::game::{Block, Direction, GameT};
 #[cfg(feature = "pong")]
 use crate::pong::{Block, Direction, Game};
+#[cfg(feature = "snake")]
+use crate::snake::{Brain, Game};
 
 use piston_window::*;
 
