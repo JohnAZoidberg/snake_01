@@ -1,7 +1,6 @@
 extern crate rand;
 
 use rand::Rng;
-use std::fmt;
 
 use crate::constants::*;
 use crate::game::*;
@@ -230,7 +229,7 @@ impl Piece {
     }
 }
 
-pub struct Game {
+pub struct BlockdropG {
     pub time: u32,
     pub score: u32,
     pub board: ExtendedGrid,
@@ -238,9 +237,9 @@ pub struct Game {
     pub game_over: bool,
 }
 
-impl GameT for Game {
-    fn new() -> Game {
-        Game {
+impl GameT for BlockdropG {
+    fn new() -> BlockdropG {
+        BlockdropG {
             time: 0,
             score: 0,
             board: ExtendedGrid::default(),
@@ -264,9 +263,9 @@ impl GameT for Game {
         let mut next_piece = self.piece.clone();
         match dir {
             Direction::UP => next_piece.rotation = next_piece.rotation.next_cw(),
-            Direction::DOWN => next_piece.pos.offset(0, 1),
-            Direction::LEFT => next_piece.pos.offset(-1, 0),
-            Direction::RIGHT => next_piece.pos.offset(1, 0),
+            Direction::DOWN => next_piece.pos.offset_blockdrop(0, 1),
+            Direction::LEFT => next_piece.pos.offset_blockdrop(-1, 0),
+            Direction::RIGHT => next_piece.pos.offset_blockdrop(1, 0),
             _ => (),
         }
         if self.check_collision(&next_piece) {
@@ -295,9 +294,15 @@ impl GameT for Game {
             self.piece = next_piece;
         };
     }
+    fn blocks(&self) -> Vec<Block> {
+        let mut bs = vec![];
+        bs.extend(self.piece.blocks());
+        bs.extend(self.board.blocks());
+        bs
+    }
 }
 
-impl Game {
+impl BlockdropG {
     fn save(&mut self) {
         for b in self.piece.blocks() {
             if b.colour == Colour::Green {

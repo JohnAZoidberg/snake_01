@@ -1,37 +1,28 @@
-mod game;
-
-#[cfg(feature = "blockdrop")]
 mod blockdrop;
-#[cfg(feature = "breakout")]
 mod breakout;
 mod constants;
-#[cfg(feature = "snake")]
-mod snake;
-use crate::game::GameT;
-#[cfg(feature = "snake")]
+mod game;
 mod gen_alg;
 #[cfg(feature = "ledmatrix")]
 mod ledmatrix;
-#[cfg(feature = "pong")]
 mod pong;
-#[cfg(feature = "snake")]
 mod qlearn;
 #[cfg(feature = "piston")]
 mod render;
 #[cfg(feature = "ledmatrix")]
 mod render_ledmatrix;
+mod snake;
 
 extern crate rayon;
 
 #[cfg(feature = "snake")]
 use rayon::prelude::*;
 
-#[cfg(feature = "blockdrop")]
-use crate::blockdrop::Game;
-#[cfg(feature = "breakout")]
-use crate::breakout::Game;
+use crate::blockdrop::BlockdropG;
+use crate::breakout::BreakoutG;
 #[cfg(feature = "snake")]
 use crate::constants::*;
+use crate::game::GameT;
 #[cfg(feature = "snake")]
 use crate::gen_alg::{Population, NN};
 #[cfg(feature = "snake")]
@@ -40,8 +31,7 @@ use crate::qlearn::QLearner;
 use crate::render::Render;
 #[cfg(feature = "ledmatrix")]
 use crate::render_ledmatrix::Render;
-#[cfg(feature = "snake")]
-use crate::snake::{Brain, Game};
+use crate::snake::{Brain, SnakeG};
 
 enum GameType {
     Human,
@@ -188,7 +178,7 @@ fn ql_play_parallel(
 
 #[cfg(feature = "snake")]
 fn play_brain<T: Brain>(brain: &mut T, num_games: u32, fitness_function: fn(i64, i64, i64, i64, i64) -> f64) -> f64 {
-    let mut game = Game::new();
+    let mut game = SnakeG::new();
     let mut fitness: f64 = 0f64;
     for _ in 0..num_games {
         game.init();

@@ -1,11 +1,9 @@
-#[cfg(feature = "blockdrop")]
-use crate::blockdrop::Game;
+use crate::blockdrop::BlockdropG;
 use crate::constants::*;
-#[cfg(any(feature = "snake", feature = "blockdrop"))]
 use crate::game::{Block, Direction, GameT};
 use crate::ledmatrix::*;
 #[cfg(feature = "snake")]
-use crate::snake::{Brain, Game};
+use crate::snake::{Brain, SnakeG};
 
 use piston_window::*;
 use serialport::SerialPort;
@@ -58,7 +56,10 @@ impl Render {
     }
 
     pub fn run(&mut self) {
-        let mut game = Game::new();
+        #[cfg(feature = "blockdrop")]
+        let mut game = BlockdropG::new();
+        #[cfg(feature = "snake")]
+        let mut game = SnakeG::new();
         game.init();
 
         while let Some(e) = self.events.next(&mut self.window) {
@@ -78,7 +79,7 @@ impl Render {
 
     #[cfg(feature = "snake")]
     pub fn run_brain<T: Brain>(&mut self, brain: &mut T) {
-        let mut game = Game::new();
+        let mut game = SnakeG::new();
         game.init();
 
         while let Some(e) = self.events.next(&mut self.window) {
@@ -98,7 +99,7 @@ impl Render {
         }
     }
 
-    fn handle_events(&mut self, button: Button, game: &mut Game) {
+    fn handle_events(&mut self, button: Button, game: &mut dyn GameT) {
         match button {
             Button::Keyboard(key) => match key {
                 Key::Up => game.update(Direction::UP),
@@ -113,7 +114,7 @@ impl Render {
     }
 
     #[cfg(feature = "snake")]
-    fn render_game(&mut self, _args: &RenderArgs, game: &Game, e: &Event) {
+    fn render_game(&mut self, _args: &RenderArgs, game: &SnakeG, e: &Event) {
         // Clear
         self.window.draw_2d(e, |_, g, _| {
             clear([1.0; 4], g);
@@ -132,7 +133,7 @@ impl Render {
     }
 
     #[cfg(feature = "blockdrop")]
-    fn render_game(&mut self, _args: &RenderArgs, game: &Game, e: &Event) {
+    fn render_game(&mut self, _args: &RenderArgs, game: &GameT, e: &Event) {
         // Clear
         self.window.draw_2d(e, |_, g, _| {
             clear([1.0; 4], g);
@@ -147,15 +148,10 @@ impl Render {
         // Draw food
         //self.render_block(&game.food, e);
 
-        for b in game.piece.blocks() {
-            if b.colour == Colour::Black {
+        for b in game.blocks() {
+            if b.colour == Colour::Green {
                 self.render_block(&b, e);
-                //println!("Block: {:?}", b);
             }
-        }
-        for b in game.board.blocks() {
-            //println!("Block: {:?}", b);
-            self.render_block(&b, e);
         }
 
         // Flush to matrix

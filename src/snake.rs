@@ -106,16 +106,16 @@ impl Snake {
     }
 }
 
-pub struct Game {
+pub struct SnakeG {
     pub snake: Snake,
     pub food: Block,
     pub time: u32,
     pub score: u32,
 }
 
-impl GameT for Game {
-    fn new() -> Game {
-        Game {
+impl GameT for SnakeG {
+    fn new() -> SnakeG {
+        SnakeG {
             snake: Snake::new(),
             food: Block {
                 position: Position::new_center(),
@@ -150,7 +150,7 @@ impl GameT for Game {
     }
 }
 
-impl Game {
+impl SnakeG {
     pub fn run_brain<T: Brain>(&mut self, brain: &mut T, fitness_function: fn(i64, i64, i64, i64, i64) -> f64) -> f64 {
         self.init();
         let mut fitness: f64 = 0f64;
@@ -497,7 +497,7 @@ mod tests {
 
     #[test]
     fn test_game_new() {
-        let game = Game::new();
+        let game = SnakeG::new();
         assert_eq!(game.snake.body[0].position, game.food.position);
         assert_eq!(game.snake.body.len(), 3);
         assert_eq!(game.time, 0);
@@ -506,7 +506,7 @@ mod tests {
 
     #[test]
     fn test_game_get_food_pos() {
-        let mut game = Game::new();
+        let mut game = SnakeG::new();
         for _ in 0..10 {
             let pos = game.get_food_pos();
             assert!(!game.snake.check_collide_body(pos));
@@ -515,7 +515,7 @@ mod tests {
 
     #[test]
     fn test_game_init() {
-        let mut game = Game::new();
+        let mut game = SnakeG::new();
         game.init();
         assert!(!game.snake.check_collide_body(game.food.position));
         assert_eq!(game.time, 0);
@@ -524,7 +524,7 @@ mod tests {
 
     #[test]
     fn test_game_update() {
-        let mut game = Game::new();
+        let mut game = SnakeG::new();
         game.init();
         assert_eq!(game.snake.direction, Direction::RIGHT);
         game.update(Direction::UP);
@@ -535,7 +535,7 @@ mod tests {
 
     #[test]
     fn test_game_next_tick() {
-        let mut game = Game::new();
+        let mut game = SnakeG::new();
         game.init();
         let mut pos = Position::new_center();
         assert_eq!(game.snake.body[0].position, pos);
@@ -546,7 +546,7 @@ mod tests {
 
     #[test]
     fn test_game_get_dir_from_brain() {
-        let mut game = Game::new();
+        let mut game = SnakeG::new();
         game.init();
         let mut nn = NN::new_defined(&[[8, 8], [8, 6], [6, 4]]);
         let dir = game.get_dir_from_brain(&mut nn);
@@ -559,7 +559,7 @@ mod tests {
 
     #[test]
     fn test_game_get_dir_nn() {
-        let mut game = Game::new();
+        let mut game = SnakeG::new();
         game.init();
         let mut nn = NN::new_defined(&[[8, 8], [8, 6], [6, 4]]);
         let board = game.get_nn_inputs();
@@ -598,7 +598,7 @@ mod tests {
             //100 * score + score * 1000 / (time + 1)  + time - food_distance
         }
 
-        let mut game = Game::new();
+        let mut game = SnakeG::new();
         game.init();
         let mut nn = NN::new_defined(&[[8, 8], [8, 4]]);
         game.run_brain(&mut nn, fitness_function);
@@ -608,7 +608,7 @@ mod tests {
 
     #[test]
     fn test_game_get_nn_inputs() {
-        let mut game = Game::new();
+        let mut game = SnakeG::new();
         game.init();
         println!("****Start****");
         let mut inputs = game.get_nn_inputs();

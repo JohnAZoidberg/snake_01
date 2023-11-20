@@ -2,7 +2,6 @@ extern crate rand;
 
 use rand::Rng;
 use std::collections::VecDeque;
-use std::fmt;
 
 use crate::constants::*;
 use crate::game::*;
@@ -30,7 +29,7 @@ impl Default for Grid {
     }
 }
 
-pub struct Game {
+pub struct BreakoutG {
     pub paddle_pos: u32,
     pub ball_pos: Position,
     pub ball_v: (i32, i32),
@@ -40,9 +39,9 @@ pub struct Game {
     pub game_over: bool,
 }
 
-impl GameT for Game {
-    fn new() -> Game {
-        Game {
+impl GameT for BreakoutG {
+    fn new() -> BreakoutG {
+        BreakoutG {
             paddle_pos: 0,
             ball_pos: Position::new(6, (HEIGHT - 2) as i8),
             ball_v: (1, -1),
@@ -145,14 +144,39 @@ impl GameT for Game {
 
         self.ball_pos = Position::new(new_x, new_y);
     }
-}
 
-impl Game {
-    pub fn board_blocks(&self) -> [Block; WIDTH * WALL_HEIGHT] {
-        let mut blocks = [Block {
-            position: Position::new(0, 0),
-            colour: Colour::Yellow,
-        }; WIDTH * WALL_HEIGHT];
+    fn paddle_blocks(&self) -> Vec<Block> {
+        let mut blocks = vec![
+            Block {
+                position: Position::new(0, 0),
+                colour: Colour::Yellow,
+            };
+            PADDLE_WIDTH
+        ];
+
+        for x in 0..PADDLE_WIDTH {
+            blocks[x].position = Position::new(self.paddle_pos as i8 + x as i8, (HEIGHT - 1) as i8);
+            blocks[x].colour = Colour::Green;
+        }
+
+        blocks
+    }
+
+    fn ball(&self) -> Option<Block> {
+        Some(Block {
+            position: self.ball_pos,
+            colour: Colour::Green,
+        })
+    }
+
+    fn board_blocks(&self) -> Vec<Block> {
+        let mut blocks = vec![
+            Block {
+                position: Position::new(0, 0),
+                colour: Colour::Yellow,
+            };
+            WIDTH * WALL_HEIGHT
+        ];
 
         for x in 0..WIDTH {
             for y in 0..WALL_HEIGHT {
@@ -167,28 +191,9 @@ impl Game {
 
         blocks
     }
+}
 
-    pub fn paddle_blocks(&self) -> [Block; PADDLE_WIDTH] {
-        let mut blocks = [Block {
-            position: Position::new(0, 0),
-            colour: Colour::Yellow,
-        }; PADDLE_WIDTH];
-
-        for x in 0..PADDLE_WIDTH {
-            blocks[x].position = Position::new(self.paddle_pos as i8 + x as i8, (HEIGHT - 1) as i8);
-            blocks[x].colour = Colour::Green;
-        }
-
-        blocks
-    }
-
-    pub fn ball(&self) -> Block {
-        Block {
-            position: self.ball_pos,
-            colour: Colour::Green,
-        }
-    }
-
+impl BreakoutG {
     fn hit_field(&mut self) -> Vec<Direction> {
         let mut dirs = vec![];
         //let mut new_x = ((self.ball_pos.x as i32) + self.ball_v.0) as i8;

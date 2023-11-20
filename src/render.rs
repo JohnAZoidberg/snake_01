@@ -1,13 +1,9 @@
-#[cfg(feature = "blockdrop")]
-use crate::blockdrop::{Game, OFF_I8, OFF_U8};
-#[cfg(feature = "breakout")]
-use crate::breakout::Game;
+use crate::blockdrop::{BlockdropG, OFF_I8, OFF_U8};
+use crate::breakout::BreakoutG;
 use crate::constants::*;
 use crate::game::{Block, Direction, GameT};
-#[cfg(feature = "pong")]
-use crate::pong::Game;
-#[cfg(feature = "snake")]
-use crate::snake::{Brain, Game};
+use crate::pong::PongG;
+use crate::snake::{Brain, SnakeG};
 
 use piston_window::*;
 
@@ -33,7 +29,15 @@ impl Render {
     }
 
     pub fn run(&mut self) {
-        let mut game = Game::new();
+        #[cfg(feature = "blockdrop")]
+        let mut game = BlockdropG::new();
+        #[cfg(feature = "breakout")]
+        let mut game = BreakoutG::new();
+        #[cfg(feature = "pong")]
+        let mut game = PongG::new();
+        #[cfg(feature = "snake")]
+        let mut game = SnakeG::new();
+
         game.init();
 
         while let Some(e) = self.events.next(&mut self.window) {
@@ -53,7 +57,7 @@ impl Render {
 
     #[cfg(feature = "snake")]
     pub fn run_brain<T: Brain>(&mut self, brain: &mut T) {
-        let mut game = Game::new();
+        let mut game = SnakeG::new();
         game.init();
 
         while let Some(e) = self.events.next(&mut self.window) {
@@ -73,7 +77,7 @@ impl Render {
         }
     }
 
-    fn handle_events(&mut self, button: Button, game: &mut Game) {
+    fn handle_events(&mut self, button: Button, game: &mut dyn GameT) {
         match button {
             Button::Keyboard(key) => match key {
                 Key::Up => game.update(Direction::UP),
@@ -92,7 +96,7 @@ impl Render {
     }
 
     #[cfg(feature = "snake")]
-    fn render_game(&mut self, _args: &RenderArgs, game: &Game, e: &Event) {
+    fn render_game(&mut self, _args: &RenderArgs, game: &SnakeG, e: &Event) {
         // Clear
         self.window.draw_2d(e, |_, g, _| {
             clear([1.0; 4], g);
@@ -108,33 +112,26 @@ impl Render {
     }
 
     #[cfg(any(feature = "blockdrop", feature = "breakout", feature = "pong"))]
-    fn render_game(&mut self, _args: &RenderArgs, game: &Game, e: &Event) {
+    fn render_game(&mut self, _args: &RenderArgs, game: &dyn GameT, e: &Event) {
         // Clear
         self.window.draw_2d(e, |_, g, _| {
             clear([1.0; 4], g);
         });
 
-        #[cfg(feature = "blockdrop")]
-        for b in game.piece.blocks() {
+        for b in game.blocks() {
             if b.colour == Colour::Green {
                 self.render_block(&b, e);
-                //println!("Block: {:?}", b);
             }
         }
-        #[cfg(feature = "blockdrop")]
-        for b in game.board.blocks() {
-            //println!("Block: {:?}", b);
-            self.render_block(&b, e);
-        }
 
-        #[cfg(any(feature = "breakout", feature = "pong"))]
-        self.render_block(&game.ball(), e);
+        if let Some(ball) = game.ball() {
+            self.render_block(&ball, e);
+        }
         #[cfg(any(feature = "breakout", feature = "pong"))]
         for b in game.paddle_blocks() {
             self.render_block(&b, e);
         }
 
-        #[cfg(feature = "breakout")]
         for b in game.board_blocks() {
             if b.colour == Colour::Green {
                 //println!("Block: {:?}", b);

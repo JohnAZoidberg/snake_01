@@ -20,20 +20,17 @@ impl Position {
         }
     }
 
-    #[cfg(feature = "snake")]
     pub fn new_offset(x: i8, y: i8) -> Position {
         let mut pos = Position::new_center();
         pos.offset(x, y);
         pos
     }
 
-    #[cfg(feature = "snake")]
     pub fn offset(&mut self, x: i8, y: i8) {
         self.x = Position::calc_offset(self.x, x, BOARD_WIDTH);
         self.y = Position::calc_offset(self.y, y, BOARD_HEIGHT);
     }
-    #[cfg(feature = "blockdrop")]
-    pub fn offset(&mut self, x: i8, y: i8) {
+    pub fn offset_blockdrop(&mut self, x: i8, y: i8) {
         self.x = Position::calc_offset(self.x, x, BOARD_WIDTH + 3 * 2);
         self.y = Position::calc_offset(self.y, y, BOARD_HEIGHT + 3);
     }
@@ -116,8 +113,22 @@ impl Direction {
 }
 
 pub trait GameT {
-    fn new() -> Self;
+    fn new() -> Self
+    where
+        Self: Sized;
     fn init(&mut self);
     fn update(&mut self, dir: Direction);
     fn next_tick(&mut self, dt: f64);
+    fn ball(&self) -> Option<Block> {
+        None
+    }
+    fn blocks(&self) -> Vec<Block> {
+        vec![]
+    }
+    fn paddle_blocks(&self) -> Vec<Block> {
+        vec![]
+    }
+    fn board_blocks(&self) -> Vec<Block> {
+        vec![]
+    }
 }

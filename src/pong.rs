@@ -1,5 +1,3 @@
-use std::fmt;
-
 use crate::constants::*;
 use crate::game::*;
 
@@ -27,7 +25,7 @@ struct Ball {
 }
 
 #[derive(Clone)]
-pub struct Game {
+pub struct PongG {
     // TODO: Properly calculate score and display it
     _score: Score,
     ball: Ball,
@@ -35,9 +33,9 @@ pub struct Game {
     pub speed: u64,
 }
 
-impl GameT for Game {
-    fn new() -> Game {
-        Game {
+impl GameT for PongG {
+    fn new() -> PongG {
+        PongG {
             _score: Score { _upper: 0, _lower: 0 },
             ball: Ball {
                 pos: Position::new(4, 20),
@@ -119,21 +117,22 @@ impl GameT for Game {
             Position::new(x as i8, y as i8)
         };
     }
-}
 
-impl Game {
-    pub fn ball(&self) -> Block {
-        Block {
+    fn ball(&self) -> Option<Block> {
+        Some(Block {
             position: self.ball.pos,
             colour: Colour::Green,
-        }
+        })
     }
 
-    pub fn paddle_blocks(&self) -> [Block; PADDLE_WIDTH * 2] {
-        let mut blocks = [Block {
-            position: Position::new(0, 0),
-            colour: Colour::Yellow,
-        }; PADDLE_WIDTH * 2];
+    fn paddle_blocks(&self) -> Vec<Block> {
+        let mut blocks = vec![
+            Block {
+                position: Position::new(0, 0),
+                colour: Colour::Yellow,
+            };
+            PADDLE_WIDTH * 2
+        ];
 
         for x in 0..PADDLE_WIDTH {
             blocks[x].position = Position::new(self.paddles.0 as i8 + x as i8, (HEIGHT - 1) as i8);
@@ -165,7 +164,7 @@ fn hit_paddle(ball: PongPosition, paddles: (usize, usize)) -> Option<usize> {
     }
 }
 
-// fn draw_matrix(state: &Game) -> Grid {
+// fn draw_matrix(state: &PongG) -> Grid {
 //     let mut grid = Grid::default();
 //
 //     for x in state.paddles.0..state.paddles.0 + PADDLE_WIDTH {
