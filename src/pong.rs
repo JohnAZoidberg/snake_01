@@ -14,7 +14,6 @@ struct Score {
     _lower: u8,
 }
 
-type PongPosition = (u8, u8);
 type Velocity = (i8, i8);
 
 #[derive(Clone)]
@@ -93,21 +92,37 @@ impl GameT for PongG {
             let y = if y > HEIGHT_U8 - 1 { HEIGHT_U8 - 1 } else { y };
             let (x, y) = if let Some(paddle_hit) = hit_paddle((x, y), self.paddles) {
                 // Hit paddle, bounce back
-                // TODO: Change vy direction slightly depending on where the paddle was hit
                 let (vx, vy) = self.ball.direction;
-                self.ball.direction = match paddle_hit {
-                    0 => (vx - 2, -vy),
-                    1 => (vx - 1, -vy),
-                    2 => (vx, -vy),
-                    3 => (vx + 1, -vy),
-                    4 => (vx + 2, -vy),
-                    // Shouldn't occur
-                    _ => (vx, -vy),
+                self.ball.direction = match (vx, paddle_hit) {
+                    // In the middle it bounces vertically
+                    (_, 2) => (0, -vy),
+
+                    // On the far side of the paddle, the ball bounces off as in real life
+                    (-1, 0) => (vx, -vy),
+                    (-1, 1) => (vx, -vy),
+                    (1, 3) => (vx, -vy),
+                    (1, 4) => (vx, -vy),
+
+                    // On the close side of the paddle, the ball bounces back to where it came from
+                    (1, 0) => (-vx, -vy),
+                    (1, 1) => (-vx, -vy),
+                    (-1, 3) => (-vx, -vy),
+                    (-1, 4) => (-vx, -vy),
+
+                    // A vertical ball will bounce towards the side where it hit the paddle
+                    (0, 0) => (-1, -vy),
+                    (0, 1) => (-1, -vy),
+                    (0, 3) => (1, -vy),
+                    (0, 4) => (1, -vy),
+
+                    (_, _) => unimplemented!("vx:{vx}, p:{paddle_hit}"),
                 };
+                println!("P: {}, Dir: {:?}", paddle_hit, self.ball.direction);
                 // TODO: Not sure if I want the speed to change. Speed by angle change is already high enough
                 //self.speed += 1;
                 (x, y)
             } else if y == 0 || y == HEIGHT_U8 - 1 {
+                // Hit top of bottom, missed the paddle
                 self.speed = 0;
                 self.ball.direction = (1, 1); //random_v(random);
                 (WIDTH_U8 / 2, HEIGHT_U8 / 2)
@@ -135,11 +150,11 @@ impl GameT for PongG {
         ];
 
         for x in 0..PADDLE_WIDTH {
-            blocks[x].position = Position::new(self.paddles.0 as i8 + x as i8, (HEIGHT - 1) as i8);
+            blocks[x].position = Position::new(self.paddles.0 as i8 + x as i8, 0);
             blocks[x].colour = Colour::Green;
         }
         for x in 0..PADDLE_WIDTH {
-            blocks[x + PADDLE_WIDTH].position = Position::new(self.paddles.1 as i8 + x as i8, 0);
+            blocks[x + PADDLE_WIDTH].position = Position::new(self.paddles.1 as i8 + x as i8, (HEIGHT - 1) as i8);
             blocks[x + PADDLE_WIDTH].colour = Colour::Green;
         }
 
@@ -153,11 +168,13 @@ fn add_velocity(pos: Position, v: Velocity) -> Position {
     Position::new(((x as i8) + vx) as i8, ((y as i8) + vy) as i8)
 }
 
-fn hit_paddle(ball: PongPosition, paddles: (usize, usize)) -> Option<usize> {
+fn hit_paddle(ball: (u8, u8), paddles: (usize, usize)) -> Option<usize> {
     let (x, y) = ball;
-    if y == 1 && paddles.0 <= (x as usize) && (x as usize) <= paddles.0 + PADDLE_WIDTH {
+    if y <= 1 && paddles.0 <= (x as usize) && (x as usize) < paddles.0 + PADDLE_WIDTH {
+        println!("Hit upper paddle");
         Some(((paddles.0 as i32) - (x as i32)).unsigned_abs() as usize)
-    } else if y == HEIGHT_U8 - 2 && paddles.1 <= (x as usize) && (x as usize) <= paddles.1 + PADDLE_WIDTH {
+    } else if y >= HEIGHT_U8 - 2 && paddles.1 <= (x as usize) && (x as usize) < paddles.1 + PADDLE_WIDTH {
+        println!("Hit lower paddle P:{}, X:{}", paddles.1, x);
         Some(((paddles.1 as i32) - (x as i32)).unsigned_abs() as usize)
     } else {
         None

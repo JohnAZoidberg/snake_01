@@ -5,13 +5,14 @@ authors = ["Sea6 <srideep007sgmail.com>"]
 edition = "2018"
 
 [features]
-default = ["ledmatrix", "snake"]
+default = []
 ledmatrix = ["serialport", "chrono"]
 piston = []
 snake = []
 blockdrop = []
 breakout = []
 pong = []
+double = []
 
 [dependencies]
 rand = "0.8.5"

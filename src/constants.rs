@@ -1,6 +1,10 @@
 pub static NAME: &str = "Framework LED Matrix Games";
 
 // Board Dimensions
+//
+#[cfg(feature = "double")]
+pub const BOARD_WIDTH: u8 = 9 * 2;
+#[cfg(not(feature = "double"))]
 pub const BOARD_WIDTH: u8 = 9;
 pub const BOARD_HEIGHT: u8 = 34;
 

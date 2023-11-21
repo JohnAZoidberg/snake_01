@@ -19,7 +19,7 @@ impl Default for ExtendedGrid {
         let mut grid = ExtendedGrid([[0; HEIGHT + 3]; WIDTH + 2 * 3]);
         for x in 0..WIDTH + 2 * 3 {
             for y in 0..HEIGHT + 3 {
-                if x < 3 || x >= 3 + 9 || y > 33 {
+                if x < 3 || x >= 3 + WIDTH || y >= HEIGHT {
                     grid.0[x][y] = 0xFF;
                 }
             }
@@ -218,9 +218,7 @@ impl Piece {
                     let res_x = (self.pos.x as i8) + (x as i8);
                     let res_y = (self.pos.y as i8) + (y as i8);
                     blocks[x + y * 4].position = Position::new(res_x, res_y);
-                    //if res_x >= 3 && res_x < 3 + 9 && res_y < 34+3 {
                     blocks[x + y * 4].colour = Colour::Green;
-                    //}
                 }
             }
         }
@@ -314,8 +312,8 @@ impl BlockdropG {
     fn check_collision(&self, piece: &Piece) -> bool {
         for b in piece.blocks() {
             if b.colour == Colour::Green {
-                //println!("Test: {:?}", b);
                 if self.board.0[b.position.x as usize][b.position.y as usize] == 0xFF {
+                    println!("Collided: {:?}", b);
                     return true;
                 }
             }

@@ -1,14 +1,25 @@
-Both
+All
 
-- [ ] Fix scaling of border
-- [ ] Fix half a block cut off on the right
+- Menu to select the game
+- Score
+- Retry button
+- Piston Rendering
+  - [ ] Fix scaling of border
+  - [ ] Fix half a block cut off on the right
+- [ ] Allow double-width board
+- Refactoring
+  - [ ] Share piston and ledmatrix rendering
+  - [ ] Implement block not by fixed-size allocation
+  - [x] Create a trait for all games
 
 Snake
 
 - [ ] Prevent running backwards into oneself
-- [ ] Start down or up...
+  - It already prevents opposite direction but if you change the direction twice, it'll do it
+- [ ] Start down or up, not sideways, ...
+- [x] Make sure it works with double-width
 
-Ledris
+Blockdrop
 
 - [x] Reach to the edges
 - [ ] Edge collision detection
@@ -16,3 +27,18 @@ Ledris
 - [ ] Save onto grid if collided with bottom
 - [ ] Collision detection with saved pieces
 - [ ] All types of pieces
+- [x] Make sure it works with double-width
+- [ ] BROKEN AT THE RIGHT SIDE!!!J
+
+Pong
+
+- [ ] Count score
+- [x] Make sure it works with double-width
+- [x] Fix double-speed ball penetrating wall and paddles
+- [x] Implement bouncing behavior that is fun
+
+Breakout
+
+- [x] Make sure it works with double-width
+- [x] Fix double-speed ball penetrating wall and paddles
+- [x] Implement bouncing behavior that is fun. Kind of... not really

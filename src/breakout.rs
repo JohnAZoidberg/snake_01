@@ -43,8 +43,8 @@ impl GameT for BreakoutG {
     fn new() -> BreakoutG {
         BreakoutG {
             paddle_pos: 0,
-            ball_pos: Position::new(6, (HEIGHT - 2) as i8),
-            ball_v: (1, -1),
+            ball_pos: Position::new(6, (HEIGHT - 10) as i8),
+            ball_v: (0, 1),
             board: Grid::default(),
             time: 0,
             score: 0,
@@ -109,15 +109,36 @@ impl GameT for BreakoutG {
         if self.ball_v.1 > 0 && self.ball_pos.y + 2 == HEIGHT as u8 && above_padel {
             let offset = (self.ball_pos.x as i8) - (self.paddle_pos + PADDLE_WIDTH_U32 / 2) as i8;
             //println!("Offset: {:?}", offset);
-            self.ball_v = match offset {
-                -3 => (1, -1),
-                -2 => (1, -1),
-                -1 => (1, -1),
-                0 => (0, -1),
-                1 => (-1, -1),
-                2 => (-1, -1),
-                3 => (-1, -1),
-                _ => self.ball_v,
+            let (vx, vy) = self.ball_v;
+            self.ball_v = match (vx, offset) {
+                // In the middle it bounces vertically
+                (_, 0) => (0, -vy),
+
+                // On the far side of the paddle, the ball bounces off as in real life
+                (-1, -3) => (vx, -vy),
+                (-1, -2) => (vx, -vy),
+                (-1, -1) => (vx, -vy),
+                (1, 1) => (vx, -vy),
+                (1, 2) => (vx, -vy),
+                (1, 3) => (vx, -vy),
+
+                // On the close side of the paddle, the ball bounces back to where it came from
+                (1, -3) => (-vx, -vy),
+                (1, -2) => (-vx, -vy),
+                (1, -1) => (-vx, -vy),
+                (-1, 1) => (-vx, -vy),
+                (-1, 2) => (-vx, -vy),
+                (-1, 3) => (-vx, -vy),
+
+                // A vertical ball will bounce towards the side where it hit the paddle
+                (0, -3) => (-1, -vy),
+                (0, -2) => (-1, -vy),
+                (0, -1) => (-1, -vy),
+                (0, 1) => (1, -vy),
+                (0, 2) => (1, -vy),
+                (0, 3) => (1, -vy),
+
+                (_, _) => unimplemented!("vx:{vx}, offset:{offset}"),
             };
         }
 
