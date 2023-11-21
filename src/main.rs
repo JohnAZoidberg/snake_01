@@ -41,6 +41,10 @@ enum GameType {
 
 fn main() {
     let game_type = GameType::Human;
+    #[cfg(feature = "genetic")]
+    let game_type = GameType::GeneticAlgorithm;
+    #[cfg(feature = "qlearn")]
+    let game_type = GameType::QLearning;
 
     match game_type {
         #[cfg(feature = "snake")]

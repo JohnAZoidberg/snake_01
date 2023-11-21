@@ -2,6 +2,7 @@
 
 all: 
 	cargo build --features piston,snake
+	cargo build --features piston,snake
 	cargo build --features piston,blockdrop
 	cargo build --features piston,breakout
 	cargo build --features piston,pong
@@ -10,6 +11,9 @@ all:
 	# TODO: Implement breakout and pong for ledmatrix
 	#cargo build --features ledmatrix,breakout
 	#cargo build --features ledmatrix,pong
+	# AI variants
+	cargo build --features piston,snake,qlearn
+	cargo build --features piston,snake,genetic
 
 # Piston
 snake:
