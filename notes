@@ -22,11 +22,11 @@ Snake
 Blockdrop
 
 - [x] Reach to the edges
-- [ ] Edge collision detection
-- [ ] Bottom collision detection
-- [ ] Save onto grid if collided with bottom
-- [ ] Collision detection with saved pieces
-- [ ] All types of pieces
+- [x] Edge collision detection
+- [x] Bottom collision detection
+- [x] Save onto grid if collided with bottom
+- [x] Collision detection with saved pieces
+- [x] All types of pieces
 - [x] Make sure it works with double-width
 - [ ] BROKEN AT THE RIGHT SIDE!!!J
 
@@ -42,3 +42,4 @@ Breakout
 - [x] Make sure it works with double-width
 - [x] Fix double-speed ball penetrating wall and paddles
 - [x] Implement bouncing behavior that is fun. Kind of... not really
+- [ ] More interesting game-play
