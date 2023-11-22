@@ -117,7 +117,7 @@ impl GameT for PongG {
 
                     (_, _) => unimplemented!("vx:{vx}, p:{paddle_hit}"),
                 };
-                println!("P: {}, Dir: {:?}", paddle_hit, self.ball.direction);
+                // println!("P: {}, Dir: {:?}", paddle_hit, self.ball.direction);
                 // TODO: Not sure if I want the speed to change. Speed by angle change is already high enough
                 //self.speed += 1;
                 (x, y)
@@ -171,10 +171,10 @@ fn add_velocity(pos: Position, v: Velocity) -> Position {
 fn hit_paddle(ball: (u8, u8), paddles: (usize, usize)) -> Option<usize> {
     let (x, y) = ball;
     if y <= 1 && paddles.0 <= (x as usize) && (x as usize) < paddles.0 + PADDLE_WIDTH {
-        println!("Hit upper paddle");
+        // println!("Hit upper paddle");
         Some(((paddles.0 as i32) - (x as i32)).unsigned_abs() as usize)
     } else if y >= HEIGHT_U8 - 2 && paddles.1 <= (x as usize) && (x as usize) < paddles.1 + PADDLE_WIDTH {
-        println!("Hit lower paddle P:{}, X:{}", paddles.1, x);
+        // println!("Hit lower paddle P:{}, X:{}", paddles.1, x);
         Some(((paddles.1 as i32) - (x as i32)).unsigned_abs() as usize)
     } else {
         None

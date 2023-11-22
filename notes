@@ -5,8 +5,8 @@ All
 - Retry button
 - Piston Rendering
   - [ ] Fix scaling of border
-  - [ ] Fix half a block cut off on the right
-- [ ] Allow double-width board
+  - [x] Fix half a block cut off on the right
+- [x] Allow double-width board
 - Refactoring
   - [ ] Share piston and ledmatrix rendering
   - [ ] Implement block not by fixed-size allocation
@@ -16,7 +16,7 @@ Snake
 
 - [ ] Prevent running backwards into oneself
   - It already prevents opposite direction but if you change the direction twice, it'll do it
-- [ ] Start down or up, not sideways, ...
+- [x] Start down or up, not sideways, ...
 - [x] Make sure it works with double-width
 
 Blockdrop

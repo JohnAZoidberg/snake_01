@@ -12,6 +12,8 @@ pub struct Render {
     events: Events,
 }
 
+const TILE_SIZE: f64 = 2.0;
+
 impl Render {
     pub fn new() -> Render {
         Render {
@@ -163,17 +165,12 @@ impl Render {
             color: Colour::Black.into(),
             radius: 0.01,
         });
-        let dims_ =
-            graphics::rectangle::rectangle_by_corners(0.0, 0.0, 2.0 / BOARD_WIDTH as f64, 2.0 / BOARD_HEIGHT as f64);
-        let transform_: Matrix2d = graphics::math::identity()
-            .trans(
-                -((BOARD_WIDTH / 2) as f64) * 2.0 / BOARD_WIDTH as f64,
-                (BOARD_HEIGHT / 2 - 1) as f64 * 2.0 / BOARD_HEIGHT as f64,
-            )
-            .trans(
-                (x as f64) * 2.0 / BOARD_WIDTH as f64,
-                -(y as f64) * 2.0 / BOARD_HEIGHT as f64,
-            );
+        let block_width = TILE_SIZE / BOARD_WIDTH as f64;
+        let dims_ = graphics::rectangle::rectangle_by_corners(0.0, 0.0, block_width, TILE_SIZE / BOARD_HEIGHT as f64);
+        let transform_: Matrix2d = graphics::math::identity().trans(-0.99, 0.99).trans(
+            (x as f64) * TILE_SIZE / BOARD_WIDTH as f64,
+            -(y as f64) * TILE_SIZE / BOARD_HEIGHT as f64,
+        );
         self.window.draw_2d(e, |c, g, _| {
             square_.draw(dims_, &c.draw_state, transform_, g);
         });
