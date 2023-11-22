@@ -53,6 +53,8 @@ impl GameT for BreakoutG {
     }
 
     fn init(&mut self) {
+        self.ball_pos = Position::new(6, (HEIGHT - 10) as i8);
+        self.ball_v = (0, 1);
         self.board = Grid::default();
         for x in 0..WIDTH {
             for y in 0..WALL_HEIGHT {
