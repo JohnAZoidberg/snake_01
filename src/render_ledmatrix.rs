@@ -1,8 +1,9 @@
-use crate::blockdrop::BlockdropG;
+use crate::blockdrop::{BlockdropG, OFF_I8, OFF_U8};
+use crate::breakout::BreakoutG;
 use crate::constants::*;
 use crate::game::{Block, Direction, GameT};
 use crate::ledmatrix::*;
-#[cfg(feature = "snake")]
+use crate::pong::PongG;
 use crate::snake::{Brain, SnakeG};
 
 use piston_window::*;
@@ -24,8 +25,10 @@ impl Default for Grid {
 pub struct Render {
     window: PistonWindow,
     events: Events,
-    serialport: Box<dyn SerialPort>,
-    grid: Grid,
+    left_serialport: Box<dyn SerialPort>,
+    right_serialport: Option<Box<dyn SerialPort>>,
+    left_grid: Grid,
+    right_grid: Grid,
 }
 
 impl Render {
@@ -34,7 +37,20 @@ impl Render {
         println!("Devs: {:?}", res);
 
         let (devs, _waited) = res;
-        let serialdev = devs.iter().last().unwrap().to_string();
+
+        let left_serialport = serialport::new(&devs[1], 115_200)
+            .timeout(SERIAL_TIMEOUT)
+            .open()
+            .unwrap();
+        let right_serialport: Option<Box<dyn SerialPort>> = None;
+        #[cfg(feature = "double")]
+        let right_serialport = Some(
+            serialport::new(&devs[0], 115_200)
+                .timeout(SERIAL_TIMEOUT)
+                .open()
+                .unwrap(),
+        );
+
         Render {
             window: WindowSettings::new(
                 NAME,
@@ -47,19 +63,23 @@ impl Render {
             .unwrap(),
             events: Events::new(EventSettings::new().ups(RENDER_UPS).max_fps(RENDER_FPS_MAX)),
             // ledmatrix
-            serialport: serialport::new(serialdev, 115_200)
-                .timeout(SERIAL_TIMEOUT)
-                .open()
-                .unwrap(),
-            grid: Grid::default(),
+            left_serialport,
+            right_serialport,
+            left_grid: Grid::default(),
+            right_grid: Grid::default(),
         }
     }
 
     pub fn run(&mut self) {
         #[cfg(feature = "blockdrop")]
         let mut game = BlockdropG::new();
+        #[cfg(feature = "breakout")]
+        let mut game = BreakoutG::new();
+        #[cfg(feature = "pong")]
+        let mut game = PongG::new();
         #[cfg(feature = "snake")]
         let mut game = SnakeG::new();
+
         game.init();
 
         while let Some(e) = self.events.next(&mut self.window) {
@@ -119,7 +139,8 @@ impl Render {
         self.window.draw_2d(e, |_, g, _| {
             clear([1.0; 4], g);
         });
-        self.grid = Grid::default();
+        self.left_grid = Grid::default();
+        self.right_grid = Grid::default();
 
         // Draw body
         for b in game.snake.body.iter() {
@@ -129,24 +150,20 @@ impl Render {
         // Draw food
         self.render_block(&game.food, e);
 
-        render_matrix_port(&mut self.serialport, &self.grid.0);
+        render_matrix_port(&mut self.left_serialport, &self.left_grid.0);
+        if let Some(ref mut right_serialport) = &mut self.right_serialport {
+            render_matrix_port(right_serialport, &self.right_grid.0);
+        }
     }
 
-    #[cfg(feature = "blockdrop")]
-    fn render_game(&mut self, _args: &RenderArgs, game: &GameT, e: &Event) {
+    #[cfg(any(feature = "blockdrop", feature = "breakout", feature = "pong"))]
+    fn render_game(&mut self, _args: &RenderArgs, game: &dyn GameT, e: &Event) {
         // Clear
         self.window.draw_2d(e, |_, g, _| {
             clear([1.0; 4], g);
         });
-        self.grid = Grid::default();
-
-        // Draw body
-        //for b in game.snake.body.iter() {
-        //    self.render_block(&b, e);
-        //}
-
-        // Draw food
-        //self.render_block(&game.food, e);
+        self.left_grid = Grid::default();
+        self.right_grid = Grid::default();
 
         for b in game.blocks() {
             if b.colour == Colour::Green {
@@ -154,17 +171,25 @@ impl Render {
             }
         }
 
-        // Flush to matrix
-        render_matrix_port(&mut self.serialport, &self.grid.0);
-        //let mut port = serialport::new(&self.serialdev, 115_200)
-        //.timeout(SERIAL_TIMEOUT)
-        //.open()
-        //.expect("Failed to open port");
+        if let Some(ball) = game.ball() {
+            self.render_block(&ball, e);
+        }
+        #[cfg(any(feature = "breakout", feature = "pong"))]
+        for b in game.paddle_blocks() {
+            self.render_block(&b, e);
+        }
 
-        //for (x, col) in self.grid.0.into_iter().enumerate() {
-        //    send_col(&mut port, x as u8, col);
-        //}
-        //commit_cols(&mut port);
+        for b in game.board_blocks() {
+            if b.colour == Colour::Green {
+                //println!("Block: {:?}", b);
+                self.render_block(&b, e);
+            }
+        }
+
+        render_matrix_port(&mut self.left_serialport, &self.left_grid.0);
+        if let Some(ref mut right_serialport) = &mut self.right_serialport {
+            render_matrix_port(right_serialport, &self.right_grid.0);
+        }
     }
 
     fn render_block(&mut self, block: &Block, e: &Event) {
@@ -181,11 +206,12 @@ impl Render {
         let y = block.position.y as usize;
         #[cfg(feature = "blockdrop")]
         let x = x - 3;
+        #[cfg(not(feature = "double"))]
         if x >= WIDTH || y >= HEIGHT {
             // Avoid crash if out of bounds
             return;
         }
-        self.grid.0[x][y] = match block.colour {
+        let value = match block.colour {
             // Red
             Colour::Red => 0xFF,
             // Yellow
@@ -195,6 +221,18 @@ impl Render {
             // Other
             _ => return, //0x00,
         };
+
+        #[cfg(not(feature = "double"))]
+        {
+            self.left_grid.0[x][y] = value;
+        }
+
+        #[cfg(feature = "double")]
+        if x >= WIDTH {
+            self.right_grid.0[x - WIDTH][y] = value;
+        } else {
+            self.left_grid.0[x][y] = value;
+        }
     }
     fn render_block_piston(&mut self, block: &Block, e: &Event) {
         #[cfg(feature = "blockdrop")]
