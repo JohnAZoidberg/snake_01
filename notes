@@ -14,7 +14,7 @@ All
 
 Snake
 
-- [ ] Prevent running backwards into oneself
+- [x] Prevent running backwards into oneself
   - It already prevents opposite direction but if you change the direction twice, it'll do it
 - [x] Start down or up, not sideways, ...
 - [x] Make sure it works with double-width

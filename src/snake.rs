@@ -16,6 +16,7 @@ pub trait Brain {
 pub struct Snake {
     pub body: VecDeque<Block>,
     pub direction: Direction,
+    pub next_direction: Direction,
     pub alive: bool,
     pub eat: bool,
 }
@@ -38,6 +39,7 @@ impl Snake {
                 },
             ]),
             direction: Direction::UP,
+            next_direction: Direction::UP,
             alive: true,
             eat: false,
         }
@@ -47,7 +49,9 @@ impl Snake {
         if self.direction == dir.opposite() {
             // Do nothing
         } else {
-            self.direction = dir;
+            // Only update self.direction on the next tick, otherwise the snake might run back into
+            // itself.
+            self.next_direction = dir;
         }
     }
 
@@ -139,6 +143,7 @@ impl GameT for SnakeG {
 
     fn next_tick(&mut self, _dt: f64) {
         if self.snake.alive {
+            self.snake.direction = self.snake.next_direction;
             self.snake.perform_next(&mut self.food.position);
             self.time += 1;
             if self.snake.eat {
