@@ -167,7 +167,7 @@ impl Render {
         });
         let block_width = TILE_SIZE / BOARD_WIDTH as f64;
         let dims_ = graphics::rectangle::rectangle_by_corners(0.0, 0.0, block_width, TILE_SIZE / BOARD_HEIGHT as f64);
-        let transform_: Matrix2d = graphics::math::identity().trans(-0.99, 0.99).trans(
+        let transform_: Matrix2d = graphics::math::identity().trans(-0.99, 0.95).trans(
             (x as f64) * TILE_SIZE / BOARD_WIDTH as f64,
             -(y as f64) * TILE_SIZE / BOARD_HEIGHT as f64,
         );

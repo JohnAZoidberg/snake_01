@@ -6,7 +6,6 @@ All
 - Piston Rendering
   - [ ] Fix scaling of border
   - [x] Fix half a block cut off on the right
-  - [ ] On GNOME the first row is cut off...
 - [x] Allow double-width board
   - [ ] Change to look like LED matrix (45deg rotated rectangles)
 - Refactoring
