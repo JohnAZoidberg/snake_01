@@ -16,7 +16,7 @@ enum Command {
     _Brightness = 0x00,
     _Pattern = 0x01,
     _Bootloader = 0x02,
-    _Sleeping = 0x03,
+    Sleeping = 0x03,
     _Animate = 0x04,
     _Panic = 0x05,
     DisplayBwImage = 0x06,
@@ -114,7 +114,26 @@ fn simple_cmd_port(port: &mut Box<dyn SerialPort>, command: Command, args: &[u8]
     buffer[..2].copy_from_slice(FWK_MAGIC);
     buffer[2] = command as u8;
     buffer[3..3 + args.len()].copy_from_slice(args);
-    port.write_all(&buffer[..3 + args.len()]).expect("Write failed!");
+    let res = port.write_all(&buffer[..3 + args.len()]);
+
+    // TODO: When the matrix is a
+    //res.expect("Write failed!");
+}
+
+pub fn goto_sleep(port: &mut Box<dyn SerialPort>, goto_sleep: bool) {
+    simple_cmd_port(port, Command::Sleeping, &[]);
+
+    let mut response: Vec<u8> = vec![0; 32];
+    port.read_exact(response.as_mut_slice())
+        .expect("Found no data!");
+
+    let sleeping: bool = response[0] == 1;
+
+    if sleeping == goto_sleep {
+        return;
+    }
+    simple_cmd_port(port, Command::Sleeping, &[u8::from(goto_sleep)]);
+    thread::sleep(Duration::from_millis(500));
 }
 
 /// Stage greyscale values for a single column. Must be committed with commit_cols()

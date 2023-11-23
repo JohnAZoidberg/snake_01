@@ -84,6 +84,12 @@ impl Render {
 
         game.init();
 
+        // Wake matrices
+        goto_sleep(&mut self.left_serialport, false);
+        if let Some(ref mut right_serialport) = &mut self.right_serialport {
+            goto_sleep(right_serialport, false);
+        }
+
         while let Some(e) = self.events.next(&mut self.window) {
             if let Some(args) = e.render_args() {
                 self.render_game(&args, &game, &e);
