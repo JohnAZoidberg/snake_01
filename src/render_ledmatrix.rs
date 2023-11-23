@@ -162,14 +162,14 @@ impl Render {
         self.render_block(&game.food, e);
 
         if self.serialport_swap {
-            render_matrix_port(&mut self.left_serialport, &self.left_grid.0);
-            if let Some(ref mut right_serialport) = &mut self.right_serialport {
-                render_matrix_port(right_serialport, &self.right_grid.0);
-            }
-        } else {
             render_matrix_port(&mut self.left_serialport, &self.right_grid.0);
             if let Some(ref mut right_serialport) = &mut self.right_serialport {
                 render_matrix_port(right_serialport, &self.left_grid.0);
+            }
+        } else {
+            render_matrix_port(&mut self.left_serialport, &self.left_grid.0);
+            if let Some(ref mut right_serialport) = &mut self.right_serialport {
+                render_matrix_port(right_serialport, &self.right_grid.0);
             }
         }
     }
@@ -205,14 +205,14 @@ impl Render {
         }
 
         if self.serialport_swap {
-            render_matrix_port(&mut self.left_serialport, &self.left_grid.0);
-            if let Some(ref mut right_serialport) = &mut self.right_serialport {
-                render_matrix_port(right_serialport, &self.right_grid.0);
-            }
-        } else {
             render_matrix_port(&mut self.left_serialport, &self.right_grid.0);
             if let Some(ref mut right_serialport) = &mut self.right_serialport {
                 render_matrix_port(right_serialport, &self.left_grid.0);
+            }
+        } else {
+            render_matrix_port(&mut self.left_serialport, &self.left_grid.0);
+            if let Some(ref mut right_serialport) = &mut self.right_serialport {
+                render_matrix_port(right_serialport, &self.right_grid.0);
             }
         }
     }
