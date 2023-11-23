@@ -6,7 +6,9 @@ All
 - Piston Rendering
   - [ ] Fix scaling of border
   - [x] Fix half a block cut off on the right
+  - [ ] On GNOME the first row is cut off...
 - [x] Allow double-width board
+  - [ ] Change to look like LED matrix (45deg rotated rectangles)
 - Refactoring
   - [ ] Share piston and ledmatrix rendering
   - [ ] Implement block not by fixed-size allocation
@@ -14,6 +16,7 @@ All
 
 Snake
 
+- [x] Count score
 - [x] Prevent running backwards into oneself
   - It already prevents opposite direction but if you change the direction twice, it'll do it
 - [x] Start down or up, not sideways, ...
@@ -21,6 +24,7 @@ Snake
 
 Blockdrop
 
+- [x] Count score
 - [x] Reach to the edges
 - [x] Edge collision detection
 - [x] Bottom collision detection
@@ -32,7 +36,7 @@ Blockdrop
 
 Pong
 
-- [ ] Count score
+- [x] Count score
 - [x] Make sure it works with double-width
 - [x] Fix double-speed ball penetrating wall and paddles
 - [x] Implement bouncing behavior that is fun

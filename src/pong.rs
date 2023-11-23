@@ -8,10 +8,10 @@ const HEIGHT_U8: u8 = BOARD_HEIGHT as u8;
 
 // --
 
-#[derive(Clone)]
+#[derive(Clone, Debug, Default)]
 struct Score {
-    _upper: u8,
-    _lower: u8,
+    upper: usize,
+    lower: usize,
 }
 
 type Velocity = (i8, i8);
@@ -25,8 +25,7 @@ struct Ball {
 
 #[derive(Clone)]
 pub struct PongG {
-    // TODO: Properly calculate score and display it
-    _score: Score,
+    score: Score,
     ball: Ball,
     paddles: (usize, usize),
     pub speed: u64,
@@ -35,7 +34,7 @@ pub struct PongG {
 impl GameT for PongG {
     fn new() -> PongG {
         PongG {
-            _score: Score { _upper: 0, _lower: 0 },
+            score: Score::default(),
             ball: Ball {
                 pos: Position::new(4, 20),
                 direction: (0, 1),
@@ -45,6 +44,7 @@ impl GameT for PongG {
         }
     }
     fn init(&mut self) {
+        self.score = Score::default();
         self.ball = Ball {
             pos: Position::new(4, 20),
             direction: (0, 1),
@@ -122,6 +122,12 @@ impl GameT for PongG {
                 //self.speed += 1;
                 (x, y)
             } else if y == 0 || y == HEIGHT_U8 - 1 {
+                if y == 0 {
+                    self.score.lower += 1;
+                } else if y == HEIGHT_U8 - 1 {
+                    self.score.upper += 1;
+                }
+                // println!("Score: {:?}", self.score);
                 // Hit top of bottom, missed the paddle
                 self.speed = 0;
                 self.ball.direction = (1, 1); //random_v(random);
