@@ -71,6 +71,11 @@ pub struct Block {
 }
 
 #[derive(Debug, PartialEq, Copy, Clone)]
+pub enum ControlKey {
+    Space,
+}
+
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Direction {
     UP,
     DOWN,
@@ -118,6 +123,7 @@ pub trait GameT {
         Self: Sized;
     fn init(&mut self);
     fn update(&mut self, dir: Direction);
+    fn update_key(&mut self, key: ControlKey) {}
     fn next_tick(&mut self, dt: f64);
     fn ball(&self) -> Option<Block> {
         None

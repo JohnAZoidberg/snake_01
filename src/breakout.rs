@@ -37,6 +37,8 @@ pub struct BreakoutG {
     pub time: u32,
     pub score: u32,
     pub game_over: bool,
+    pub catch: bool,
+    pub caught: bool,
 }
 
 impl GameT for BreakoutG {
@@ -49,6 +51,8 @@ impl GameT for BreakoutG {
             time: 0,
             score: 0,
             game_over: false,
+            catch: false,
+            caught: false,
         }
     }
 
@@ -64,6 +68,8 @@ impl GameT for BreakoutG {
         self.time = 0;
         self.score = 0;
         self.game_over = false;
+        self.catch = false;
+        self.caught = false;
     }
 
     fn update(&mut self, dir: Direction) {
@@ -72,11 +78,32 @@ impl GameT for BreakoutG {
         }
 
         let new_ppos = match dir {
-            Direction::LEFT if self.paddle_pos > 0 => self.paddle_pos - 1,
-            Direction::RIGHT if self.paddle_pos + PADDLE_WIDTH_U32 < WIDTH_U32 => self.paddle_pos + 1,
+            Direction::LEFT if self.paddle_pos > 0 => {
+                if self.caught {
+                    self.ball_pos.x -= 1;
+                }
+                self.paddle_pos - 1
+            },
+            Direction::RIGHT if self.paddle_pos + PADDLE_WIDTH_U32 < WIDTH_U32 => {
+                if self.caught {
+                    self.ball_pos.x += 1;
+                }
+                self.paddle_pos + 1
+            },
             _ => self.paddle_pos,
         };
         self.paddle_pos = new_ppos;
+    }
+
+    fn update_key(&mut self, key: ControlKey) {
+        match key {
+            ControlKey::Space => {
+                if self.caught {
+                    self.caught = false;
+                }
+                self.catch = !self.catch;
+            }
+        }
     }
 
     fn next_tick(&mut self, _dt: f64) {
@@ -110,6 +137,10 @@ impl GameT for BreakoutG {
             self.ball_pos.x as u32 >= self.paddle_pos && self.ball_pos.x as u32 <= self.paddle_pos + PADDLE_WIDTH_U32;
         if self.ball_v.1 > 0 && self.ball_pos.y + 2 == HEIGHT as u8 && above_padel {
             let offset = (self.ball_pos.x as i8) - (self.paddle_pos + PADDLE_WIDTH_U32 / 2) as i8;
+            if self.catch {
+                self.caught = true;
+            }
+
             //println!("Offset: {:?}", offset);
             let (vx, vy) = self.ball_v;
             self.ball_v = match (vx, offset) {
@@ -142,6 +173,13 @@ impl GameT for BreakoutG {
 
                 (_, _) => unimplemented!("vx:{vx}, offset:{offset}"),
             };
+        }
+
+        // Catch expires in the same tick, you have to press it when the ball is exactly at the
+        // paddle
+        self.catch = false;
+        if self.caught {
+            return;
         }
 
         let mut new_x = ((self.ball_pos.x as i32) + self.ball_v.0) as i8;

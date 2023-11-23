@@ -76,10 +76,11 @@ cargo run --features piston,snake,genetic
 
 ###### Breakout
 
-| Key  | Action            |
-|------|-------------------|
-| LEFT | Move paddle left  |
-| DOWN | Move paddle right |
+| Key   | Action                      |
+|-------|-----------------------------|
+| LEFT  | Move paddle left            |
+| DOWN  | Move paddle right           |
+| SPACE | Capture ball and release it |
 
 ###### Blockdrop
 

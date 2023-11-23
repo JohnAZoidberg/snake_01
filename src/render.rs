@@ -1,7 +1,7 @@
 use crate::blockdrop::{BlockdropG, OFF_I8, OFF_U8};
 use crate::breakout::BreakoutG;
 use crate::constants::*;
-use crate::game::{Block, Direction, GameT};
+use crate::game::{Block, ControlKey, Direction, GameT};
 use crate::pong::PongG;
 use crate::snake::{Brain, SnakeG};
 
@@ -91,6 +91,7 @@ impl Render {
                 #[cfg(feature = "pong")]
                 Key::D => game.update(Direction::SECOND_RIGHT),
                 Key::R => game.init(),
+                Key::Space => game.update_key(ControlKey::Space),
                 _ => {}
             },
             _ => {}
