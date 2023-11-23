@@ -116,7 +116,7 @@ fn simple_cmd_port(port: &mut Box<dyn SerialPort>, command: Command, args: &[u8]
     buffer[3..3 + args.len()].copy_from_slice(args);
     let res = port.write_all(&buffer[..3 + args.len()]);
 
-    // TODO: When the matrix is a
+    // TODO: When matrix is asleep and wakes up, it doesn't respond quickly enough
     //res.expect("Write failed!");
 }
 
@@ -124,8 +124,12 @@ pub fn goto_sleep(port: &mut Box<dyn SerialPort>, goto_sleep: bool) {
     simple_cmd_port(port, Command::Sleeping, &[]);
 
     let mut response: Vec<u8> = vec![0; 32];
-    port.read_exact(response.as_mut_slice())
-        .expect("Found no data!");
+    let res = port.read_exact(response.as_mut_slice());
+    if res.is_err() {
+        // TODO: When matrix is asleep and wakes up, it doesn't respond quickly enough
+        // port.expect("Found no data!");
+        return;
+    }
 
     let sleeping: bool = response[0] == 1;
 
