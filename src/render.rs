@@ -90,7 +90,7 @@ impl Render {
                 Key::A => game.update(Direction::SECOND_LEFT),
                 #[cfg(feature = "pong")]
                 Key::D => game.update(Direction::SECOND_RIGHT),
-                Key::Space => game.init(),
+                Key::R => game.init(),
                 _ => {}
             },
             _ => {}

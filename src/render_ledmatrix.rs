@@ -132,7 +132,7 @@ impl Render {
                 Key::A => game.update(Direction::SECOND_LEFT),
                 #[cfg(feature = "pong")]
                 Key::D => game.update(Direction::SECOND_RIGHT),
-                Key::Space => game.init(),
+                Key::R => game.init(),
                 Key::S => {
                     if self.right_serialport.is_some() {
                         self.serialport_swap = !self.serialport_swap;
